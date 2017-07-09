@@ -1,0 +1,21 @@
+#include "map.h"
+
+/*
+ * map基本的测试和使用办法
+ *
+ * */
+int main () {
+	Map mymap = map();
+	Item *item = new_item("hgg", "80");
+	add_item(&mymap, item);
+	item = new_item("Mohican", "100");
+	add_item(&mymap, item);
+	item = new_item("dgj", "70");
+	add_item(&mymap, item);
+	item = new_item("jmt", "30");
+	add_item(&mymap, item);
+	mapshow(&mymap);
+	printf("%s\n", value(&mymap, "jmt"));
+	map_clear(&mymap);
+	return 0;
+}
