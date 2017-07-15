@@ -137,6 +137,9 @@ static int light_parse_value(light_context* c, light_value* v)
 	    case 'f':  return light_parse_literal(c,v,"false",LIGHT_FALSE);
         case 'n':  return light_parse_literal(c, v,"null",LIGHT_NULL);
         case '\0': return LIGHT_PARSE_EXPECT_VALUE;
+        case '\"': return light_parse_string(c,v);
+        case '[':  return light_parse_array(c,v);
+        case '{':  return light_parse_object(c,v);
         default:   return light_parse_number(c, v);
     }
 }
@@ -149,14 +152,14 @@ void light_free(light_value *v)
 	{
 		case LIGHT_STRING:free(v->munion.str.str);break;
 		case LIGHT_ARRAY:
-			for(i = 0;i<v->munion.arr.size)
+			for(i = 0; i<v->munion.arr.size; ++i)
 			{
-				light_free(v->munion.arr.arr[i]);
+				light_free(&v->munion.arr.arr[i]);
 			}
 			free(v->munion.arr.arr);
 			break;
 		case LIGHT_OBJECT:
-            map_clear(v->munion.object.object->pmap);
+            clear_map(v->munion.object.object->pmap);
             break;
 		default: break;
 	}
@@ -301,6 +304,7 @@ light_value* light_get_array(const light_value *v, size_t index)
 static int light_parse_array(light_context* c, light_value* v)
 {
 	size_t size = 0;
+	size_t i;
     int ret;
     EXPECT(c, '[');
     light_parse_whitespace(c);           //'[' 之后
@@ -311,12 +315,13 @@ static int light_parse_array(light_context* c, light_value* v)
         v->munion.arr.arr = NULL;
         return LIGHT_PARSE_OK;
     }
-    for (;;) {
+    for (;;) 
+    {
         light_value e;
         light_init(&e);
         if ((ret = light_parse_value(c, &e)) != LIGHT_PARSE_OK)break;
    
-        memcpy(lept_context_push(c, sizeof(lept_value)), &e, sizeof(lept_value));//压入stack
+        memcpy(light_context_push(c, sizeof(light_value)), &e, sizeof(light_value));//压入stack
         size++;
         light_parse_whitespace(c);       //','之前
         if (*c->json == ',')
@@ -340,12 +345,12 @@ static int light_parse_array(light_context* c, light_value* v)
             break;
     }
 	for (i = 0; i < size; i++)
-    	light_free((light_value*)light_context_pop(c, sizeof(lept_value)));
+    	light_free((light_value*)light_context_pop(c, sizeof(light_value)));
     return ret;
 }
 
 
-static int lept_parse_object(light_context* c, light_value* v) 
+static int light_parse_object(light_context* c, light_value* v) 
 {
     size_t size;
     member m;
@@ -353,11 +358,11 @@ static int lept_parse_object(light_context* c, light_value* v)
     
     int ret;
     EXPECT(c, '{');
-    lept_parse_whitespace(c);
+    light_parse_whitespace(c);
     if (*c->json == '}') {
         c->json++;
         v->type = LIGHT_OBJECT;
-        v->munion.object.pmap = NULL;
+        v->munion.object.object->pmap = NULL;
         v->munion.object.size = 0;
         return LIGHT_PARSE_OK;
     }
@@ -395,7 +400,7 @@ static int lept_parse_object(light_context* c, light_value* v)
         
         // parse value
         if ((ret = light_parse_value(c, &mvalue)) != LIGHT_PARSE_OK)break;
-        add_Item(v->munion.object.object->pmap,new_Item(mstr,mvalue));//
+        add_item(v->munion.object.object->pmap,New_Item(mstr,&mvalue));//
 		mstr = NULL;
        	size++;
         
@@ -428,16 +433,16 @@ static int lept_parse_object(light_context* c, light_value* v)
 
 
 
-
+/***********************************生成器generate********************************************/
 
 //生成字符串
-static void light_stringify_string(light_context* c, const char* s, size_t len) 
+static void light_generate_string(light_context* c, const char* s, size_t len) 
 {
     static const char hex_digits[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
     size_t i, size;
     char* head, *p;
     assert(s != NULL);
-    p = head = lept_context_push(c, size = len * 6 + 2);
+    p = head = light_context_push(c, size = len * 6 + 2);
     *p++ = '"';
     for (i = 0; i < len; i++) {
         unsigned char ch = (unsigned char)s[i];
@@ -466,22 +471,51 @@ static void light_stringify_string(light_context* c, const char* s, size_t len)
 }
 
 
-static void light_create_value(light_context* c,const light_value *v)
+static void light_generate_value(light_context* c,const light_value *v)
 {
 	size_t i;
 	switch(v->type)
 	{
 		case LIGHT_ARRAY:
-			PUTC(C,'[');	
+			PUTC(c,'[');	
 			for(i = 0; i<v->munion.arr.size; ++i)
 			{
-				if(i > 0)PUTC(C,',');
-				light_create_value(c, v->munion.arr.arr[i]);
+				if(i > 0)PUTC(c,',');
+				light_generate_value(c, &v->munion.arr.arr[i]);
 			}
-			PUTC(C,']');break;
+			PUTC(c,']');break;
 		case LIGHT_OBJECT:
-			PUTC(C,'{');
+			PUTC(c,'{');
 	}
+}
 
-	
+
+
+
+/***********************************map*******************************************************/
+
+Item *New_Item(char *key, void *value) 
+{
+	Item *pres = (Item *)calloc(sizeof(Item), 1);
+	pres->key = key;
+	pres->value = (char *)calloc(sizeof(char), sizeof(light_value));
+	memcpy(pres->value, value,sizeof(light_value));
+	return pres;
+}
+void show_node(void *data)
+{
+	Item *p = (Item *)data;
+	printf("%s : %s\n", p->key, p->value);
+}
+void map_show(Map *pmap) 
+{
+	show(pmap->tree, show_node);
+}
+void clear_node(void *p) 
+{
+	light_value * pv= (light_value *)p;
+	light_free(pv);
+}
+void clear_map(Map *pmap) {
+	clear(pmap->tree, clear_node);
 }

@@ -6,7 +6,7 @@
 
 
 
-
+//"[ null , false , true , 123 , \"abc\" ]"
 
 int main()
 {
@@ -15,7 +15,7 @@ int main()
 	printf("return:%d\n", light_parse(&v, ".123"));
 	printf("number:%f\n", light_get_number(&v));
 
-	printf("return:%d\n", light_parse(&v, "1."));
+	printf("return:%d\n", light_parse(&v, " hello "));
 	printf("number:%f\n", light_get_number(&v));
 	
 	printf("return:%d\n", light_parse(&v, "1e-10000"));
