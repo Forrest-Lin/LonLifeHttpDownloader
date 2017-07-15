@@ -6,13 +6,10 @@
 #include <sys/socket.h>
 #include <stdbool.h>
 
+#include "parse_http.h"
 
 
 
-void parse_request(const char *request) {
-}
-vod get_request_method(const char *request) {
-}
 
 int start() {
 	int sersock = socket(AF_INET, SOCK_STREAM, 0);
@@ -41,10 +38,25 @@ int start() {
 	while (true){
 		// begin to accept a connection
 		int client = accept(sersock, (struct sockaddr*)&caddr, &size);
-		printf("Connect a client successfully\n");
+		printf("A client connected successfully\n");
 		char buff[1024] = "";
 		recv(client, &buff, 1023, 0);
-		printf("%s\n", buff);
+		Map mmp = parse_request(buff);
+		const char *method = get_request_method(&mmp);
+		assert (strcmp(method, "GET") == 0);
+		const char *destfile = get_dest_file(&mmp);
+		char *res = (char *)calloc(sizeof(char), 60);
+		assert (res != NULL);
+		if (judge_file_exsit(destfile, res)) {
+			printf("%s:File exists\n". destfile);
+			write_to_client(client, res);
+		}
+		else {
+			printf("%s:File not exists\n", destfile);
+			//err_to_deal(client, res);
+		}
+		free(res);
+		close(client);
 	}
 	return 0;
 }

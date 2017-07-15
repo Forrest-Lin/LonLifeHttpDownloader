@@ -1,0 +1,10 @@
+all: version
+
+version: server_version1.c
+	gcc -o version server_version1.c parse_http.c -g -L../map -lmap
+
+run: version
+	./version
+
+clean:
+	rm -rf version

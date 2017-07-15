@@ -1,4 +1,4 @@
-#include "map.h"
+#include "../map/map.h"
 
 int main () {
 	Map mymap = map();
@@ -12,5 +12,6 @@ int main () {
 	add_item(&mymap, item);
 	mapshow(&mymap);
 	printf("%s\n", value(&mymap, "jmt"));
+	map_clear(&mymap);
 	return 0;
 }

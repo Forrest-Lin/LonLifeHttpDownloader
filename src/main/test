@@ -1,0 +1,10 @@
+destfile:GET /
+color:0
+====================
+method:GET
+color:1
+====================
+protype: HTTP/1.1
+color:0
+====================
+

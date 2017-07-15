@@ -3,10 +3,6 @@
 int compare(void *first, void *second) {
 	return strcmp(((Item *)first)->key, ((Item *)second)->key);
 }
-void myshow(void *data) {
-	Item *p = (Item *)data;
-	printf("%s:%s\n", p->key, p->value);
-}
 
 
 Map map() {
@@ -15,28 +11,18 @@ Map map() {
 	return res_map;
 }
 
-Item *new_item(const char*key, const char *value) {
-	Item *pres = (Item *)calloc(sizeof(Item), 1);
-	pres->key = (char *)calloc(sizeof(char), strlen(key)+1);
-	strcpy(pres->key, key);
-	pres->value = (char *)calloc(sizeof(char), strlen(value)+1);
-	strcpy(pres->value, value);
-	return pres;
-}
-
-
 void add_item(Map *pmap, Item *item) {
 	insert(pmap->tree, item, compare);
 }
 
 void mapshow(Map *pmap) {
-	show(pmap->tree, myshow);
+	show(pmap->tree, show_item);
 }
 
 int value_compare(void *p, void *key) {
 	return strcmp(((Item *)p)->key, key);
 }
-char *value(Map *pmap, char *key) {
+void *value(Map *pmap, char *key) {
 	Node *p = find(pmap->tree, value_compare, key);
 	if (p == NULL) {
 		// not exsit
@@ -46,12 +32,6 @@ char *value(Map *pmap, char *key) {
 	return ((Item *)(p->data))->value;
 }
 
-void inner_clear(void *p) {
-	Item * pitem= (Item *)p;
-	free(pitem->key);
-	free(pitem->value);
-	free(pitem);
-}
 
 void map_clear(Map *pmap) {
 	clear(pmap->tree, inner_clear);
