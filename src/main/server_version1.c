@@ -48,7 +48,7 @@ int start() {
 		char *res = (char *)calloc(sizeof(char), 60);
 		assert (res != NULL);
 		if (judge_file_exsit(destfile, res)) {
-			printf("%s:File exists\n". destfile);
+			printf("%s:File exists\n", destfile);
 			write_to_client(client, res);
 		}
 		else {
