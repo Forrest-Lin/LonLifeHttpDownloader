@@ -28,30 +28,26 @@ typedef enum
 enum 
 {
 	LIGHT_PARSE_OK = 0,
-    LIGHT_PARSE_EXPECT_VALUE,            //JSON 空白
-    LIGHT_PARSE_INVALID_VALUE,           //值类型不存在
-    LIGHT_PARSE_ROOT_NOT_SINGULAR,        //若一个值之后，在空白之后还有其他字符
-    LIGHT_PARSE_NUMBER_TOO_BIG,           //数字太大
+    LIGHT_PARSE_EXPECT_VALUE,            //1  JSON 空白
+    LIGHT_PARSE_INVALID_VALUE,           //2值类型不存在
+    LIGHT_PARSE_ROOT_NOT_SINGULAR,        //3若一个值之后，在空白之后还有其他字符
+    LIGHT_PARSE_NUMBER_TOO_BIG,           //4数字太大
     //string
-    LIGHT_PARSE_INVALID_STRING_ESCAPE,    //无效的转义字符
-    LIGHT_PARSE_INVALID_STRING_CHAR,      // 无效的字符
-    LIGHT_PARSE_MISS_QUOTATION_MARK,      //  缺少结束标志
-    LIGHT_PARSE_INVALID_UNICODE_SURROGATE, //unicode 无效的编码
-    LIGHT_PARSE_INVALID_UNICODE_HEX ,       // 无效的16进制数
+    LIGHT_PARSE_INVALID_STRING_ESCAPE,    //5无效的转义字符
+    LIGHT_PARSE_INVALID_STRING_CHAR,      //6无效的字符
+    LIGHT_PARSE_MISS_QUOTATION_MARK,      //7缺少结束标志
+    LIGHT_PARSE_INVALID_UNICODE_SURROGATE,//8unicode 无效的编码
+    LIGHT_PARSE_INVALID_UNICODE_HEX ,     //9 无效的16进制数
     //array
-	LIGHT_PARSE_MISS_COMMA_OR_SQUARE_BRACKET,   //array缺少',' or ']'
+	LIGHT_PARSE_MISS_COMMA_OR_SQUARE_BRACKET,   //10array缺少',' or ']'
 	//object
-    LIGHT_PARSE_MISS_KEY,                    // 缺少key
-    LIGHT_PARSE_MISS_COLON ,                 //缺少':'
-    LIGHT_PARSE_MISS_COMMA_OR_CURLY_BRACKET   //缺少',' or '}'
+    LIGHT_PARSE_MISS_KEY,                    //11 缺少key
+    LIGHT_PARSE_MISS_COLON ,                 //12缺少':'
+    LIGHT_PARSE_MISS_COMMA_OR_CURLY_BRACKET   //13缺少',' or '}'
 };
 typedef struct light_value light_value;
 
-typedef struct member//对象成员
-{
-	Map *pmap;
-	//map; key-value
-}member;
+
 
 //json Node
 struct light_value
@@ -59,7 +55,7 @@ struct light_value
 	light_type type;
 	union
 	{
-		struct{size_t size; member *object;}object;//
+		struct{size_t size; Map *pmap;}object;//
 		struct{size_t len;char *str;}str;          //string
 		struct{size_t size; light_value *arr;}arr;//array
 		double number;                        //number
@@ -75,7 +71,7 @@ typedef struct
 }light_context;
 
 
-
+void show_value(light_value *v);
 
 
 /*****************************************解析*************************************/
