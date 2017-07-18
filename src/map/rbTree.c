@@ -7,8 +7,8 @@
 void _show(Node *p, Node *tail, ShowValue func) {
 	if (p->left != tail) _show(p->left, tail, func);
 	func(p->data);
-	printf("color:%d\n", p->node_color);
-	printf("====================\n");
+	//printf("color:%d\n", p->node_color);
+	//printf("====================\n");
 	if (p->right != tail) _show(p->right, tail, func);
 
 }

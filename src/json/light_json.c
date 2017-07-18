@@ -4,42 +4,41 @@
 
 void show_value(light_value *v)
 {
-	size_t i;
-	assert(v != NULL);
-	switch(v->type)
-	{
-		case LIGHT_NULL:printf(" null ");break;
-		case LIGHT_TRUE:printf(" true ");break;
-		case LIGHT_FALSE:printf(" false ");break;
-		case LIGHT_NUMBER:printf("%f", light_get_number(v));break;
-		case LIGHT_STRING:printf("%s", light_get_string(v));break;
-		case LIGHT_ARRAY:
-			printf("[ ");
-			for(i = 0; i<v->munion.arr.size; ++i)
-			{
-				if(i >0)printf(",");
-				show_value(&v->munion.arr.arr[i]);
-			}
-			printf(" ]");
-			break;
-		case LIGHT_OBJECT:
-			printf("{ ");
+    size_t i;
+    assert(v != NULL);
+    switch(v->type)
+    {
+        case LIGHT_NULL:printf(" null ");break;
+        case LIGHT_TRUE:printf(" true ");break;
+        case LIGHT_FALSE:printf(" false ");break;
+        case LIGHT_NUMBER:printf(" %f ", light_get_number(v));break;
+        case LIGHT_STRING:printf(" %s ", light_get_string(v));break;
+        case LIGHT_ARRAY:
+            printf("[ ");
+            for(i = 0; i<v->munion.arr.size; ++i)
+            {
+                if(i >0)printf(",");
+                show_value(&v->munion.arr.arr[i]);
+            }
+            printf(" ]");
+            break;
+        case LIGHT_OBJECT:
+            printf("{ ");
             map_show(v->munion.object.pmap);
             printf("} ");
             break;
-		default: break;
-		
-	}
+        default: break;
+    }
 }
 
 
 int light_parse(light_value *v, const char* json)
 {
-	light_context c;
-	int ret;
+    light_context c;
+    int ret;
     assert(v != NULL);
 
-	c.stack = NULL;
+    c.stack = NULL;
     c.size = 0;
     c.top = 0;
     
@@ -52,10 +51,8 @@ int light_parse(light_value *v, const char* json)
         if (*c.json != '\0')
             ret = LIGHT_PARSE_ROOT_NOT_SINGULAR;//singular
     }
-
     assert(c.top == 0);
     free(c.stack);
-    
     return ret;
 }
 
@@ -68,14 +65,14 @@ static void light_parse_whitespace(light_context* c)
 }
 
 static int light_parse_literal(light_context* c, light_value* v,
-								const char* literal, light_type type)
+                                const char* literal, light_type type)
 {
     EXPECT(c, literal[0]);
     size_t i;
     for(i = 0; literal[i+1]; ++i)
     {
-	    if(c->json[i] != literal[i+1])
-	    return LIGHT_PARSE_INVALID_VALUE;
+        if(c->json[i] != literal[i+1])
+        return LIGHT_PARSE_INVALID_VALUE;
     }
     c->json += i;
     v->type = type;
@@ -83,47 +80,68 @@ static int light_parse_literal(light_context* c, light_value* v,
 }
 
 static int light_parse_number(light_context *c, light_value *v)
-{//?
-	char* end;
-	
-  	v->munion.number = strtod(c->json, &end);
-  	if (errno == ERANGE && (v->munion.number == HUGE_VAL || v->munion.number == -HUGE_VAL))
+{
+    char* p = c->json;
+    //Ë¥üÂè∑ 
+    if(*p == '-')++p;
+    //Êï¥Êï∞
+    if(*p == '0')++p;
+    else
+    {
+        if(!ISDIGIT(*p,'1','9'))return LIGHT_PARSE_INVALID_VALUE;
+        for(++p;ISDIGIT(*p,'0','9');++p);
+    }
+    //Â∞èÊï∞
+    if(*p == '.')
+    {
+        ++p;
+        if(!ISDIGIT(*p,'0','9'))return LIGHT_PARSE_INVALID_VALUE;
+        for(++p;ISDIGIT(*p,'0','9');++p);
+    }
+    //ÊåáÊï∞ 
+    if(*p == 'e' || *p == 'E')
+    {
+        ++p;
+        if (*p == '+' || *p == '-') ++p;
+        if (!ISDIGIT(*p,'0','9')) return LIGHT_PARSE_INVALID_VALUE;
+        for (p++; ISDIGIT(*p,'0','9'); p++);
+    }
+    v->munion.number = strtod(c->json, NULL);
+    if (errno == ERANGE && (v->munion.number == HUGE_VAL || v->munion.number == -HUGE_VAL))
         return LIGHT_PARSE_NUMBER_TOO_BIG;
-    if (c->json == end)
-        return LIGHT_PARSE_INVALID_VALUE;
-    
-    c->json = end;
+
+    c->json = p;
     v->type = LIGHT_NUMBER;
     return LIGHT_PARSE_OK;	
 }
 
 static int light_parse_string(light_context *c, light_value *v)
 {
-	size_t head = c->top; 
-	size_t len;
+    size_t head = c->top; 
+    size_t len;
     const char* p;
     unsigned u ,u2;
-	EXPECT(c,'\"');
+    EXPECT(c,'\"');
 
-	p = c->json;
-	while(1)
-	{
-		char ch = *p++;
-		switch(ch)
-		{
-			case '\"':
-				len = c->top - head;
-				light_set_string(v, (const char*)light_context_pop(c, len), len);
-				
+    p = c->json;
+    while(1)
+    {
+        char ch = *p++;
+        switch(ch)
+        {
+            case '\"':
+                len = c->top - head;
+                light_set_string(v, (const char*)light_context_pop(c, len), len);
+            
                 c->json = p;
                 return LIGHT_PARSE_OK;
             case '\0':
-            	c->top = head;
-            	return LIGHT_PARSE_MISS_QUOTATION_MARK;
+                c->top = head;
+                return LIGHT_PARSE_MISS_QUOTATION_MARK;
             case '\\':
-            	switch(*p++)
-            	{
-	            	case '\"': PUTC(c, '\"'); break;
+                switch(*p++)
+                {
+                    case '\"': PUTC(c, '\"'); break;
                     case '\\': PUTC(c, '\\'); break;
                     case '/':  PUTC(c, '/' ); break;
                     case 'b':  PUTC(c, '\b'); break;
@@ -132,41 +150,41 @@ static int light_parse_string(light_context *c, light_value *v)
                     case 'r':  PUTC(c, '\r'); break;
                     case 't':  PUTC(c, '\t'); break;
                     case 'u':
-                    	if (!(p = light_parse_hex4(p, &u)))
-						    STRING_ERROR(LIGHT_PARSE_INVALID_UNICODE_HEX);
-						if (u >= 0xD800 && u <= 0xDBFF) 
-						{ //∏ﬂ¥˙¿ÌœÓ
-						    if (*p++ != '\\')//
-						        STRING_ERROR(LIGHT_PARSE_INVALID_UNICODE_SURROGATE);
-						    if (*p++ != 'u')
-						        STRING_ERROR(LIGHT_PARSE_INVALID_UNICODE_SURROGATE);
-						    if (!(p = light_parse_hex4(p, &u2)))
-						        STRING_ERROR(LIGHT_PARSE_INVALID_UNICODE_HEX);
-						    if (u2 < 0xDC00 || u2 > 0xDFFF)
-						        STRING_ERROR(LIGHT_PARSE_INVALID_UNICODE_SURROGATE);
-						    u = (((u - 0xD800) << 10) | (u2 - 0xDC00)) + 0x10000;
-						}//x*0x400
-    					light_encode_utf8(c, u);break;
+                        if (!(p = light_parse_hex4(p, &u)))
+                            STRING_ERROR(LIGHT_PARSE_INVALID_UNICODE_HEX);
+                        if (u >= 0xD800 && u <= 0xDBFF) 
+                        { //È´ò‰ª£ÁêÜÈ°π
+                            if (*p++ != '\\')//
+                                STRING_ERROR(LIGHT_PARSE_INVALID_UNICODE_SURROGATE);
+                            if (*p++ != 'u')
+                                STRING_ERROR(LIGHT_PARSE_INVALID_UNICODE_SURROGATE);
+                            if (!(p = light_parse_hex4(p, &u2)))
+                                STRING_ERROR(LIGHT_PARSE_INVALID_UNICODE_HEX);
+                            if (u2 < 0xDC00 || u2 > 0xDFFF)
+                                STRING_ERROR(LIGHT_PARSE_INVALID_UNICODE_SURROGATE);
+                            u = (((u - 0xD800) << 10) | (u2 - 0xDC00)) + 0x10000;
+                        }//x*0x400
+                        light_encode_utf8(c, u);break;
                     default:
                         c->top = head;
                         return LIGHT_PARSE_INVALID_STRING_ESCAPE;
-            	}break;
+                }break;
             default :
-            	if ((unsigned char)ch < 0x20) { //¥¶¿Ì≤ª∫œ∑®◊÷∑˚
+                if ((unsigned char)ch < 0x20) { //Â§ÑÁêÜ‰∏çÂêàÊ≥ïÂ≠óÁ¨¶
                     c->top = head;
                     return LIGHT_PARSE_INVALID_STRING_CHAR;
                 }
-            	PUTC(c,ch);break;
-		}//switch
-	}
+                PUTC(c,ch);break;
+        }//switch
+    }
 }
 
 static int light_parse_value(light_context* c, light_value* v) 
 {
     switch (*c->json) 
     {
-	    case 't':  return light_parse_literal(c,v,"true",LIGHT_TRUE);
-	    case 'f':  return light_parse_literal(c,v,"false",LIGHT_FALSE);
+        case 't':  return light_parse_literal(c,v,"true",LIGHT_TRUE);
+        case 'f':  return light_parse_literal(c,v,"false",LIGHT_FALSE);
         case 'n':  return light_parse_literal(c, v,"null",LIGHT_NULL);
         case '\0': return LIGHT_PARSE_EXPECT_VALUE;
         case '\"': return light_parse_string(c,v);
@@ -178,110 +196,107 @@ static int light_parse_value(light_context* c, light_value* v)
 
 void light_free(light_value *v)
 {
-	size_t i;
-	assert(v != NULL);
-	switch(v->type)
-	{
-		case LIGHT_STRING:free(v->munion.str.str);break;
-		case LIGHT_ARRAY:
-			for(i = 0; i<v->munion.arr.size; ++i)
-			{
-				light_free(&v->munion.arr.arr[i]);
-			}
-			free(v->munion.arr.arr);
-			break;
-		case LIGHT_OBJECT:
+    size_t i;
+    assert(v != NULL);
+    switch(v->type)
+    {
+        case LIGHT_STRING:free(v->munion.str.str);break;
+        case LIGHT_ARRAY:
+            for(i = 0; i<v->munion.arr.size; ++i)
+            {
+                light_free(&v->munion.arr.arr[i]);
+            }
+            free(v->munion.arr.arr);
+            break;
+        case LIGHT_OBJECT:
             clear_map(v->munion.object.pmap);
             free(v->munion.object.pmap);
             break;
-		default: break;
-	}
-	
-	v->type = LIGHT_NULL;
+        default: break;
+    }
+    v->type = LIGHT_NULL;
 }
 
 const char* light_get_string(const light_value *v)
 {
-	assert(v != NULL && v->type == LIGHT_STRING);
-	return v->munion.str.str;
+    assert(v != NULL && v->type == LIGHT_STRING);
+    return v->munion.str.str;
 }
 size_t light_get_string_length(const light_value *v)
 {
-	assert(v != NULL && v->type == LIGHT_STRING);
-	return v->munion.str.len;
+    assert(v != NULL && v->type == LIGHT_STRING);
+    return v->munion.str.len;
 }
 void light_set_string(light_value *v, const char *s, size_t len)
 {
-	
-	assert(v != NULL &&(s != NULL || len != 0));
-	light_free(v);
-	v->munion.str.str = (char*)malloc(len+1);
-	memcpy(v->munion.str.str,s,len);
-	v->munion.str.str[len] = '\0';
-	v->munion.str.len = len;
-	v->type = LIGHT_STRING;
+    assert(v != NULL &&(s != NULL || len != 0));
+    light_free(v);
+    v->munion.str.str = (char*)malloc(len+1);
+    memcpy(v->munion.str.str,s,len);
+    v->munion.str.str[len] = '\0';
+    v->munion.str.len = len;
+    v->type = LIGHT_STRING;
 }
 
 
 light_type light_get_type(const light_value* v)
 {
-	assert(v != NULL);
-	return v->type;
+    assert(v != NULL);
+    return v->type;
 }
 
 double light_get_number(const light_value* v)
 {
-	assert(v != NULL && v->type == LIGHT_NUMBER);
-	return v->munion.number; 
+    assert(v != NULL && v->type == LIGHT_NUMBER);
+    return v->munion.number; 
 }
 
 void light_set_number(light_value *v, double n)
 {
-	light_free(v);
-	v->munion.number = n;
-	v->type = LIGHT_NUMBER;
+    light_free(v);
+    v->munion.number = n;
+    v->type = LIGHT_NUMBER;
 }
 int light_get_boolean(const light_value *v)
 {
-	assert(v != NULL && (v->type == LIGHT_TRUE|| v->type == LIGHT_FALSE));
-	return v->type == LIGHT_TRUE;
+    assert(v != NULL && (v->type == LIGHT_TRUE|| v->type == LIGHT_FALSE));
+    return v->type == LIGHT_TRUE;
 }
 void light_set_boolean(light_value *v, int b)
 {
-	light_free(v);
-	v->type = b ? LIGHT_TRUE:LIGHT_FALSE;
+    light_free(v);
+    v->type = b ? LIGHT_TRUE:LIGHT_FALSE;
 }
 
 
 static void* light_context_push(light_context *c, size_t size)
 {
-	void *ret;
-	assert(c != NULL && size > 0);
+    void *ret;
+    assert(c != NULL && size > 0);
 
-	if(c->top + size >= c->size)
-	{
-		if(c->size == 0)
-		{
-			c->size = LIGHT_CONTEXT_STACK_INIT_SIZE;
-		}
-		while (c->top + size >= c->size) 
-		{
-			c->size += c->size>>1; 	
-		}
-
-		c->stack = (char*)realloc(c->stack, c->size);
-	}
-	ret = c->stack + c->top;
-	c->top += size; 
-	return ret;
+    if(c->top + size >= c->size)
+    {
+        if(c->size == 0)
+        {
+            c->size = LIGHT_CONTEXT_STACK_INIT_SIZE;
+        }
+        while (c->top + size >= c->size) 
+        {
+            c->size += c->size>>1; 	
+        }
+        c->stack = (char*)realloc(c->stack, c->size);
+    }
+    ret = c->stack + c->top;
+    c->top += size; 
+    return ret;
 }
 static void* light_context_pop(light_context *c, size_t size)
 {
-	assert(c != NULL && c->top >= size );
-	return c->stack+(c->top -= size);
+    assert(c != NULL && c->top >= size );
+    return c->stack+(c->top -= size);
 }
 
-//¥”◊÷∑˚¥Æ÷–Ω‚Œˆ4Œªµƒ16Ω¯÷∆ ˝   
+//‰ªéÂ≠óÁ¨¶‰∏≤‰∏≠Ëß£Êûê4‰ΩçÁöÑ16ËøõÂà∂Êï∞   
 static const char* light_parse_hex4(const char* p, unsigned* u) 
 {
     int i;
@@ -304,7 +319,7 @@ static void light_encode_utf8(light_context* c, unsigned u)
     else if (u <= 0x7FF) 
     {
         PUTC(c, 0xC0 | ((u >> 6) & 0xFF));
-        PUTC(c, 0x80 | ( u       & 0x3F));//0x00 111111 »°∫Û6Œª
+        PUTC(c, 0x80 | ( u       & 0x3F));//0x00 111111 ÂèñÂêé6‰Ωç
     }
     else if (u <= 0xFFFF) 
     {
@@ -324,25 +339,24 @@ static void light_encode_utf8(light_context* c, unsigned u)
 
 size_t light_get_array_size(const light_value *v)
 {
-	assert(v != NULL && v->type == LIGHT_ARRAY);
-	return v->munion.arr.size;
+    assert(v != NULL && v->type == LIGHT_ARRAY);
+    return v->munion.arr.size;
 }
 light_value* light_get_array(const light_value *v, size_t index)
 {
-	assert(v != NULL && v->type == LIGHT_ARRAY);
-	assert(index < v->munion.arr.size);
-	return &v->munion.arr.arr[index];
+    assert(v != NULL && v->type == LIGHT_ARRAY);
+    assert(index < v->munion.arr.size);
+    return &v->munion.arr.arr[index];
 }
 
 
 static int light_parse_array(light_context* c, light_value* v)
 {
-	
-	size_t size = 0;
-	size_t i;
+    size_t size = 0;
+    size_t i;
     int ret;
     EXPECT(c, '[');
-    light_parse_whitespace(c);           //'[' ÷Æ∫Û
+    light_parse_whitespace(c);           //'[' ‰πãÂêé
     if (*(c->json) == ']') {
         c->json++;
         v->type = LIGHT_ARRAY;
@@ -356,13 +370,13 @@ static int light_parse_array(light_context* c, light_value* v)
         light_init(&e);
         if ((ret = light_parse_value(c, &e)) != LIGHT_PARSE_OK)break;
    
-        memcpy(light_context_push(c, sizeof(light_value)), &e, sizeof(light_value));//—π»Îstack
+        memcpy(light_context_push(c, sizeof(light_value)), &e, sizeof(light_value));//ÂéãÂÖ•stack
         size++;
-        light_parse_whitespace(c);       //','÷Æ«∞
+        light_parse_whitespace(c);       //','‰πãÂâç
         if (*c->json == ',')
         {
-	        c->json++;
-	        light_parse_whitespace(c);  //','÷Æ∫Û
+            c->json++;
+            light_parse_whitespace(c);  //','‰πãÂêé
         } 
         else if (*c->json == ']') 
         {
@@ -376,12 +390,12 @@ static int light_parse_array(light_context* c, light_value* v)
         }
         else
         {  
-			ret =  LIGHT_PARSE_MISS_COMMA_OR_SQUARE_BRACKET;
+            ret =  LIGHT_PARSE_MISS_COMMA_OR_SQUARE_BRACKET;
             break;
         }
     }
-	for (i = 0; i < size; i++)
-    	light_free((light_value*)light_context_pop(c, sizeof(light_value)));
+    for (i = 0; i < size; i++)
+        light_free((light_value*)light_context_pop(c, sizeof(light_value)));
     return ret;
 }
 
@@ -407,9 +421,9 @@ static int light_parse_object(light_context* c, light_value* v)
     for (;;) 
     {
 	    
-	    light_value mkey;//
-	    light_value mvalue;//  
-	    size_t mlen;
+        light_value mkey;//
+        light_value mvalue;//  
+        size_t mlen;
 	    
         light_init(&mkey);
         light_init(&mvalue);
@@ -427,7 +441,7 @@ static int light_parse_object(light_context* c, light_value* v)
         mstr = mkey.munion.str.str;
 
         // parse ws colon ws 
-   		light_parse_whitespace(c);
+   	    light_parse_whitespace(c);
         if (*c->json != ':') 
         {
             ret = LIGHT_PARSE_MISS_COLON;
@@ -441,7 +455,7 @@ static int light_parse_object(light_context* c, light_value* v)
         Item *ite = New_Item(mstr, &mvalue);
         add_item(v->munion.object.pmap, ite);
      
-		mstr = NULL;
+        mstr = NULL;
        	size++;
         
         // parse ws [',' | '}'] ws 
@@ -466,16 +480,38 @@ static int light_parse_object(light_context* c, light_value* v)
     }
     // free  
     free(mstr);
-    light_free(v);//free◊” ˜
+    light_free(v);//freeÂ≠êÊ†ë
     return ret;
 }
 
 
 
 
-/***********************************…˙≥…∆˜generate********************************************/
+/***********************************ÁîüÊàêÂô®generate********************************************/
 
-//…˙≥…◊÷∑˚¥Æ
+int light_generate(const light_value* v, char** json, size_t* length) 
+{
+    light_context c;
+    int ret;
+    assert(v != NULL);
+    assert(json != NULL);
+    c.stack = (char*)malloc(c.size = LIGHT_CONTEXT_STACK_INIT_SIZE);
+    c.top = 0;
+    
+    if ((ret = light_generate_value(&c, v)) != LIGHT_OK) 
+    {
+        free(c.stack);
+        *json = NULL;
+        return ret;
+    }
+    if (length)
+        *length = c.top;
+    PUTC(&c, '\0');
+    *json = c.stack;
+    return LIGHT_OK;
+}
+
+//ÁîüÊàêÂ≠óÁ¨¶‰∏≤
 static void light_generate_string(light_context* c, const char* s, size_t len) 
 {
     static const char hex_digits[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
@@ -483,8 +519,9 @@ static void light_generate_string(light_context* c, const char* s, size_t len)
     char* head, *p;
     assert(s != NULL);
     p = head = light_context_push(c, size = len * 6 + 2);
-    *p++ = '"';
-    for (i = 0; i < len; i++) {
+    *p++ = '\"';//?
+    for (i = 0; i < len; i++) 
+    {
         unsigned char ch = (unsigned char)s[i];
         switch (ch) 
         {
@@ -506,27 +543,40 @@ static void light_generate_string(light_context* c, const char* s, size_t len)
                     *p++ = s[i];
         }
     }
-    *p++ = '"';
+    *p++ = '\"';
     c->top -= size - (p - head);
 }
 
 
-static void light_generate_value(light_context* c,const light_value *v)
+static int light_generate_value(light_context* c,const light_value *v)
 {
-	size_t i;
-	switch(v->type)
-	{
-		case LIGHT_ARRAY:
-			PUTC(c,'[');	
-			for(i = 0; i<v->munion.arr.size; ++i)
-			{
-				if(i > 0)PUTC(c,',');
-				light_generate_value(c, &v->munion.arr.arr[i]);
-			}
-			PUTC(c,']');break;
-		case LIGHT_OBJECT:
-			PUTC(c,'{');
-	}
+    size_t i;
+    int len;
+    switch(v->type)
+    {
+        case LIGHT_NULL:  PUTS(c, "null",  4); break;
+        case LIGHT_TRUE:   PUTS(c, "true",  4); break;
+        case LIGHT_FALSE:  PUTS(c, "false",  5); break;
+        case LIGHT_NUMBER://sprintf("%.17g", ...) ÊääÊµÆÁÇπÊï∞ËΩ¨Êç¢ÊàêÊñáÊú¨
+            len = sprintf(light_context_push(c, 32), "%.17g", v->munion.number);//
+            c->top -= 32 - len;    
+            break;
+        case LIGHT_STRING:
+            light_generate_string(c,v->munion.str.str,v->munion.str.len);break;
+        case LIGHT_ARRAY:
+            PUTC(c,'[');	
+            for(i = 0; i<v->munion.arr.size; ++i)
+            {
+                if(i > 0)PUTC(c,',');
+                light_generate_value(c, &v->munion.arr.arr[i]);
+            }
+            PUTC(c,']');break;
+        case LIGHT_OBJECT:
+            PUTC(c,'{');
+            traverse(v->munion.object.pmap,c);
+            PUTC(c,'}');
+    }
+    return LIGHT_OK;
 }
 
 
@@ -536,29 +586,75 @@ static void light_generate_value(light_context* c,const light_value *v)
 
 Item *New_Item(char *key, void *value) 
 {
-	Item *pres = (Item *)calloc(sizeof(Item), 1);
-	pres->key = key;
-	pres->value = (char *)calloc(sizeof(char), sizeof(light_value));
-	memcpy(pres->value, value,sizeof(light_value));
-	return pres;
+    Item *pres = (Item *)calloc(sizeof(Item), 1);
+    pres->key = key;
+    pres->value = (char *)calloc(sizeof(char), sizeof(light_value));
+    memcpy(pres->value, value,sizeof(light_value));
+    return pres;
 }
 void show_node(void *data)
 {
-	Item *p = (Item *)data;
-	light_value *q = (light_value*)p->value;
-	printf("%s : ", p->key);
-	show_value(q);
-	printf("\n");
+    Item *p = (Item *)data;
+    light_value *q = (light_value*)p->value;
+    printf("%s : ", p->key);
+    show_value(q);
+    printf("\n");
 }
 void map_show(Map *pmap) 
 {
-	show(pmap->tree, show_node);
+    show(pmap->tree, show_node);
 }
 void clear_node(void *p) 
 {
-	light_value * pv= (light_value *)p;
-	light_free(pv);
+    light_value * pv= (light_value *)p;
+    light_free(pv);
 }
-void clear_map(Map *pmap) {
-	clear(pmap->tree, clear_node);
+void clear_map(Map *pmap) 
+{
+    clear(pmap->tree, clear_node);
+}
+
+
+
+void traverse(Map *pmap, light_context* c) 
+{
+	// ÈùûÈÄíÂΩíÁâàÈÅçÂéÜ‰∫åÂèâÊ†ë
+	if (pmap->tree->root == NULL) {
+		printf("empty tree");
+		return ;
+	}
+	
+	Node *p = pmap->tree->root;
+	Node *tail = pmap->tree->tail;
+	size_t i = 0;
+	while(p->left != tail)p = p->left;
+	
+	while(p != NULL)
+	{
+    	if(i>0)PUTC(c,',');
+    	Item *it = (Item *)(p->data);
+    	light_value *q = (light_value*)(it->value);
+
+    	light_generate_string(c,it->key,strlen(it->key));//'\0'
+    	
+    	PUTC(c,':');
+    	light_generate_value(c,q);
+    	
+    	++i;
+    	if(p->right != tail)
+    	{
+        	p = p->right;
+        	while(p->left != tail)p = p->left;
+    	}
+    	else
+    	{
+        	Node *tmp = p->parent;
+        	while(tmp != NULL && tmp->right == p)
+        	{
+            	p = tmp;
+            	tmp = p->parent;
+        	}
+        	p = tmp;
+    	}
+	}
 }

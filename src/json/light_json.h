@@ -12,7 +12,10 @@
 #define light_init(v) do { (v)->type = LIGHT_NULL; } while(0)
 #define light_set_null(v) light_free(v)
 #define PUTC(c,ch) do { *(char*)light_context_push((c),sizeof(char)) = (ch); } while(0)
+#define PUTS(c, s, len)     memcpy(light_context_push(c, len), s, len)
 #define STRING_ERROR(ret) do { (c)->top = head; return ret; } while(0)
+#define ISDIGIT(ch,start,end) ((ch)>=(start) && (ch)<=(end))
+
 
 #ifndef LIGHT_CONTEXT_STACK_INIT_SIZE
 #define LIGHT_CONTEXT_STACK_INIT_SIZE 256
@@ -20,16 +23,16 @@
 
 //json  type
 typedef enum 
-{
-	LIGHT_NULL,LIGHT_FALSE,LIGHT_TRUE,LIGHT_NUMBER,LIGHT_STRING,LIGHT_ARRAY,LIGHT_OBJECT
+{   // 0          1          2        3            4              5           6
+    LIGHT_NULL,LIGHT_FALSE,LIGHT_TRUE,LIGHT_NUMBER,LIGHT_STRING,LIGHT_ARRAY,LIGHT_OBJECT
 }light_type;
 
 //return 
 enum 
 {
-	LIGHT_PARSE_OK = 0,
+    LIGHT_PARSE_OK = 0,
     LIGHT_PARSE_EXPECT_VALUE,            //1  JSON 空白
-    LIGHT_PARSE_INVALID_VALUE,           //2值类型不存在
+    LIGHT_PARSE_INVALID_VALUE,           //2 值类型不存在
     LIGHT_PARSE_ROOT_NOT_SINGULAR,        //3若一个值之后，在空白之后还有其他字符
     LIGHT_PARSE_NUMBER_TOO_BIG,           //4数字太大
     //string
@@ -39,11 +42,12 @@ enum
     LIGHT_PARSE_INVALID_UNICODE_SURROGATE,//8unicode 无效的编码
     LIGHT_PARSE_INVALID_UNICODE_HEX ,     //9 无效的16进制数
     //array
-	LIGHT_PARSE_MISS_COMMA_OR_SQUARE_BRACKET,   //10array缺少',' or ']'
-	//object
+    LIGHT_PARSE_MISS_COMMA_OR_SQUARE_BRACKET,   //10array缺少',' or ']'
+    //object
     LIGHT_PARSE_MISS_KEY,                    //11 缺少key
     LIGHT_PARSE_MISS_COLON ,                 //12缺少':'
-    LIGHT_PARSE_MISS_COMMA_OR_CURLY_BRACKET   //13缺少',' or '}'
+    LIGHT_PARSE_MISS_COMMA_OR_CURLY_BRACKET,   //13缺少',' or '}'
+    LIGHT_OK
 };
 typedef struct light_value light_value;
 
@@ -52,14 +56,14 @@ typedef struct light_value light_value;
 //json Node
 struct light_value
 {
-	light_type type;
-	union
-	{
-		struct{size_t size; Map *pmap;}object;//
-		struct{size_t len;char *str;}str;          //string
-		struct{size_t size; light_value *arr;}arr;//array
-		double number;                        //number
-	}munion;
+    light_type type;
+    union
+    {
+        struct{size_t size; Map *pmap;}object;//
+        struct{size_t len;char *str;}str;          //string
+        struct{size_t size; light_value *arr;}arr;//array
+        double number;                        //number
+    }munion;
 };
 
 //json string
@@ -79,7 +83,7 @@ int light_parse(light_value *v, const char *json);
 
 static void light_parse_whitespace(light_context *c); 
 static int light_parse_literal(light_context *c, light_value *v,
-								const char *literal, light_type type);							
+                                const char *literal, light_type type);							
 static int light_parse_number(light_context *c, light_value *v);
 static int light_parse_string(light_context *c, light_value *v);
 
@@ -113,14 +117,17 @@ static int light_parse_object(light_context* c, light_value* v);
 
 
 /***********************************生成器generate********************************************/
+
+int light_generate(const light_value* v, char** json, size_t* length) ;
 char* light_stringify(const light_value* v, size_t* length);
 static void light_generate_string(light_context* c, const char* s, size_t len);
 
-static void light_generate_value(light_context* c,const light_value *v);
+static int light_generate_value(light_context* c,const light_value *v);
 
 
 
 /***********************************map*******************************************************/
+
 
 Item *New_Item(char *key, void *value); 
 
@@ -130,5 +137,6 @@ void map_show(Map *pmap) ;
 
 void clear_node(void *p); 
 
-void clear_map(Map *pmap) ;
+void clear_map(Map *pmap);
+void traverse(Map *pmap, light_context* c);
 #endif
