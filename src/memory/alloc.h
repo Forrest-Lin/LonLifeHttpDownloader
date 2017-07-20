@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 #include <assert.h>
 #include <stdbool.h>
 
@@ -18,12 +20,6 @@ typedef struct chunk{
 	struct chunk *next_chunk;
 }chunk;
 
-// main manage var
-Heap heap = {NULL, NULL, 0};
-chunk *chunk_list[16] = {NULL};
-int Min_size = 8;
-int Max_size = 128;
-int Nnum = 20;
 
 
 // main function
@@ -33,6 +29,6 @@ void *chunk_alloc(int);
 // change size to n*8
 int round_up(int);
 // give a n*8 get n
-int index(int);
+int Index(int);
 // refill mem for indx, if success return pointer, nor NULL
 bool heap_refill(int);
