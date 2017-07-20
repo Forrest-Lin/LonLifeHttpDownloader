@@ -1,3 +1,5 @@
+#ifndef _ALLOC_H_
+#define _ALLOC_H_
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -24,6 +26,7 @@ typedef struct chunk{
 
 // main function
 void *lalloc(int, int);
+void lfree(void *, int);
 //alloc from chunk_list vs malloc
 void *chunk_alloc(int);
 // change size to n*8
@@ -32,3 +35,4 @@ int round_up(int);
 int Index(int);
 // refill mem for indx, if success return pointer, nor NULL
 bool heap_refill(int);
+#endif

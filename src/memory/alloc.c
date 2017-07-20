@@ -18,6 +18,19 @@ void *lalloc(int size, int n){
 	return res;
 }
 
+void lfree(void *p, int size) {
+	if (size > Max_size) {
+		free(p);
+	}
+	else {
+		int indx = Index(round_up(size));
+		// head insert the p
+		chunk *next = chunk_list[indx];
+		chunk_list[indx] = (chunk *)p;
+		chunk_list[indx]->next_chunk = next;
+	}
+}
+
 
 int round_up(int size) {
 	return (size+Min_size-1) & ~(Min_size-1);
