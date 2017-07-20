@@ -1,0 +1,21 @@
+{
+  "server_num": 3,
+  "server_lists": [
+    {
+      "server_name": "test1",
+      "server_ip": "192.168.1.32",
+      "server_port": "6001"
+    },
+    {
+      "server_name": "test2",
+      "server_ip": "37.139.29.127",
+      "server_port": "7801"
+    },
+    {
+      "server_name": "test3",
+      "server_ip": "37.139.29.127",
+      "server_port": "8901"
+    }
+  ],
+  "scheduler_method": "hash"
+}
