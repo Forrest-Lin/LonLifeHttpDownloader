@@ -1,23 +1,28 @@
 DIR = $(shell pwd)
 CC = gcc
-SRC := $(wildcard  $(DIR)/*.c)
+SRC = map.c rbTree.c 
 HEADER = $(DIR)/*.h
 OBJ := $(patsubst %.c,%.o, $(SRC))
+NAME = map
+TESTC = test.c
 LIB_OBJ = libmap.a
-SO_OBJ = map.so
+TEST = test
 
-all:  $(SO_OBJ) $(LIB_OBJ)
+all:  $(LIB_OBJ) $(TEST)
 
 $(OBJ): $(SRC)
 	gcc -fPIC -c $(SRC)
 
-$(SO_OBJ):$(OBJ) $(HEADER)
-	$(CC) $(OBJ) -shared -fPIC -o $(SO_OBJ)
-
 $(LIB_OBJ): $(OBJ) $(HEADER)
 	ar rcs $(LIB_OBJ) $(OBJ)
+
+$(TEST): $(TESTC)
+	gcc -o $(TEST) $(TESTC) -L. -l$(NAME)
 
 clean:
 	rm -rf $(OBJ)
 	rm -rf $(LIB_OBJ)
-	rm -rf $(SO_OBJ)
+	rm -rf $(TEST)
+
+rm:
+	rm -rf $(OBJ) $(TEST)
