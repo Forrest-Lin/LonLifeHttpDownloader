@@ -74,12 +74,22 @@ typedef struct
     size_t size,top;
 }light_context;
 
-
+/***********************************接口************************************************/
 void show_value(light_value *v);
 
+light_value *create_number(double num);//malloc
+light_value *create_string(const char *string);
+light_value *create_array();
+light_value *create_object();
+void add_array(light_value *v, light_value *arr);
+void add_object(light_value *v,light_value *key,light_value *val);
+
+int light_parse(light_value *v, const char *json);
+int light_generate(const light_value* v, char** json, size_t* length) ;
+void light_free(light_value *v);
 
 /*****************************************解析*************************************/
-int light_parse(light_value *v, const char *json);
+
 
 static void light_parse_whitespace(light_context *c); 
 static int light_parse_literal(light_context *c, light_value *v,
@@ -98,7 +108,7 @@ void light_set_number(light_value *v, double n);
 int light_get_boolean(const light_value *v);
 void light_set_boolean(light_value *v, int b);
 
-void light_free(light_value *v);
+
 const char* light_get_string(const light_value *v);
 size_t light_get_string_length(const light_value *v);
 void light_set_string(light_value *v, const char *s, size_t len);
@@ -118,12 +128,10 @@ static int light_parse_object(light_context* c, light_value* v);
 
 /***********************************生成器generate********************************************/
 
-int light_generate(const light_value* v, char** json, size_t* length) ;
-char* light_stringify(const light_value* v, size_t* length);
+
 static void light_generate_string(light_context* c, const char* s, size_t len);
 
 static int light_generate_value(light_context* c,const light_value *v);
-
 
 
 /***********************************map*******************************************************/
