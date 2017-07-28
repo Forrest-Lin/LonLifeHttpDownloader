@@ -14,24 +14,30 @@ int main()
 {
     char *s = "{\"title\": \"Design Patterns\",\"author\": [\"Erich Gamma\",\"Richard Helm\",\"RalphJohnson\",\"John Vlissides\"],\"year\": 2009,\"weight\": 1.8,\"hardcover\": true,\"publisher\": {\"Company\": \"Pearson Education\",\"Country\": \"India\"}}";
     light_value v;
-    light_value e;
-    light_value *p = create_object();
-    light_value *a = create_array();
-    char *ret;
-    size_t len;
-    add_object(p,create_string("name"),create_string("hhh"));
-    
-    add_array(a,create_string("Erich Gamma"));
-    add_array(a,create_string("Richard Helm"));
-    show_value(a);
-    
-    add_object(p,create_string("author"),a);
-    printf("object:");
-    show_value(p);
-    printf("\n");
-    light_free(p);
-    //light_parse(&v, s);
-    //show_value(&v);
+    //light_value e;
+    //light_value *p = create_object();
+    //light_value *a = create_array();
+    //char *ret;
+    //size_t len;
+    //add_object(p,create_string("name"),create_string("hhh"));
+    //
+    //add_array(a,create_string("Erich Gamma"));
+    //add_array(a,create_string("Richard Helm"));
+    //show_value(a);
+    //
+    //add_object(p,create_string("author"),a);
+    //printf("object:");
+    //show_value(p);
+    //printf("\n");
+    //light_free(p);
+    light_parse(&v, s);
+	show_value(Value(&v, "title"));
+	char *p = (char *)calloc(20, 1);
+	assert (p != NULL);
+	get_string(Value(&v, "title"), p);
+	printf("%s\n", p);
+	light_free(&v);
+	free(p);
 
  
     

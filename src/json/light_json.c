@@ -104,6 +104,30 @@ void show_value(light_value *v)
     }
 }
 
+light_value *index_array(light_value *p, int indx) {
+	assert (p->type == LIGHT_ARRAY);
+	assert (p->munion.arr.size > indx);
+
+	return p->munion.arr.arr + indx;
+}
+
+light_value *Value(light_value *pmain, const char *key) {
+	assert (pmain->type == LIGHT_OBJECT);
+
+	return (light_value*)value(pmain->munion.object.pmap, key);
+}
+
+void get_number(light_value *p, double *res) {
+	assert (p->type == LIGHT_NUMBER);
+
+	*res = p->munion.number;
+}
+
+void get_string(light_value *p, char *res) {
+	assert (p->type == LIGHT_STRING);
+
+	strcpy(res, p->munion.str.str);
+}
 
 int light_parse(light_value *v, const char* json)
 {
@@ -156,7 +180,7 @@ static int light_parse_literal(light_context* c, light_value* v,
 
 static int light_parse_number(light_context *c, light_value *v)
 {
-    char* p = c->json;
+    const char* p = c->json;
     //负号 
     if(*p == '-')++p;
     //整数

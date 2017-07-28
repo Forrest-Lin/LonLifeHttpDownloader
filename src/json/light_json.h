@@ -88,6 +88,11 @@ int light_parse(light_value *v, const char *json);
 int light_generate(const light_value* v, char** json, size_t* length) ;
 void light_free(light_value *v);
 
+light_value *Value(light_value *pmain, const char *key);
+void get_number(light_value *p, double *res);
+void get_string(light_value *p, char *res);
+light_value *index_array(light_value *, int);
+
 /*****************************************解析*************************************/
 
 
