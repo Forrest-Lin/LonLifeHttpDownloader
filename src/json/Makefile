@@ -1,19 +1,26 @@
+SRC = light_json.c
+HEADER = *.h
+OBJ = light_json.o
+TESTC = test_json.c
+MPATH = ../map/
+DEP = map
 
-src := $(wildcard ./*.c)
-obj := $(patsubst %.c,%.o, $(src))
+all : libjson.a test
 
-all	:	test
+$(OBJ): $(SRC)
+	gcc -fPIC -c $(SRC)
 
-test	:	$(obj) map.o rbTree.o
-	gcc -o test $(obj) map.o rbTree.o
+libjson.a: $(OBJ)
+	ar crs libjson.a $(OBJ)
 
-$(obj)	:	$(src)
-	gcc -c $(src)
-map.o	:	../map/map.c 
-	gcc -c ../map/map.c
-rbTree.o	:	../map/rbTree.c
-	gcc -c ../map/rbTree.c
-clean	:
+test: $(TESTC)
+	gcc -o test $(TESTC) -L. -ljson -L$(MPATH) -l$(DEP)
+
+clean:
 	rm -rf *.o
+	rm -rf test
+	rm -rf libjson.a
 
-
+rm:
+	rm -rf *.o
+	rm -rf test

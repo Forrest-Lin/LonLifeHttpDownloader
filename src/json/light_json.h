@@ -139,11 +139,11 @@ static int light_generate_value(light_context* c,const light_value *v);
 
 Item *New_Item(char *key, void *value); 
 
-void show_node(void *data);
+void show_item(void *data);
 
 void map_show(Map *pmap) ;
 
-void clear_node(void *p); 
+void inner_clear(void *p); 
 
 void clear_map(Map *pmap);
 void traverse(Map *pmap, light_context* c);

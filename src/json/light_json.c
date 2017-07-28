@@ -671,7 +671,7 @@ Item *New_Item(char *key, void *value)
     memcpy(pres->value, value,sizeof(light_value));
     return pres;
 }
-void show_node(void *data)
+void show_item(void *data)
 {
     Item *p = (Item *)data;
     light_value *q = (light_value*)p->value;
@@ -681,16 +681,16 @@ void show_node(void *data)
 }
 void map_show(Map *pmap) 
 {
-    show(pmap->tree, show_node);
+    show(pmap->tree, show_item);
 }
-void clear_node(void *p) 
+void inner_clear(void *p) 
 {
     light_value * pv= (light_value *)p;
     light_free(pv);
 }
 void clear_map(Map *pmap) 
 {
-    clear(pmap->tree, clear_node);
+    clear(pmap->tree, inner_clear);
 }
 
 

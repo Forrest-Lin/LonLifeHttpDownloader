@@ -1,0 +1,26 @@
+{
+	"type":"push",
+	"object":"path",
+	"header":"",
+	"ip":"192.1681.30",
+	"port":"7801"
+}
+
+// 1
+{
+	"type":"get",
+	"header":"msg info",
+	"sign":"ip+port"
+}
+//2
+{
+	"type":"push",
+	"object":"/doc/main.c"
+}
+//3
+{
+	"type":"del",
+	"object":"/doc/main.c"
+}
+
+"type": "push", "del", "get"
