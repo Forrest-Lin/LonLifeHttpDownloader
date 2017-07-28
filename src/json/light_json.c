@@ -2,6 +2,79 @@
 
 
 
+light_value *create_number(double num)
+{
+    light_value *ret = (light_value*)malloc(sizeof(light_value));
+    ret->type = LIGHT_NUMBER;
+    ret->munion.number = num;
+    return ret;
+}
+light_value *create_string(const char *string)
+{
+    
+    light_value *ret = (light_value*)malloc(sizeof(light_value));
+    light_context c;
+    c.stack = NULL;
+    c.size = 0;
+    c.top = 0;
+    light_generate_string(&c,string,strlen(string));
+    c.json = c.stack;
+    light_parse_string(&c,ret);
+    return ret;
+}
+light_value *create_array()
+{
+    light_value *ret = (light_value*)malloc(sizeof(light_value));
+    ret->type = LIGHT_ARRAY;
+    ret->munion.arr.arr = NULL;
+    ret->munion.arr.size = 0;
+    return ret;
+}
+light_value *create_object()
+{
+    light_value *ret = (light_value*)malloc(sizeof(light_value));
+    ret->type = LIGHT_OBJECT;
+    ret->munion.object.pmap = NULL;
+    ret->munion.object.size = 0;
+    return ret;
+}
+void add_array(light_value *v, light_value *arr)
+{
+    assert(v != NULL && v->type == LIGHT_ARRAY);
+    int len = v->munion.arr.size;
+    if(v->munion.arr.size == 0)
+    {
+        v->munion.arr.arr = arr;
+        v->munion.arr.size = 1;
+    }
+    else
+    {
+        printf("bug\n");
+        v->munion.arr.arr = (light_value*)realloc(v->munion.arr.arr, sizeof(light_value)*(len+1));
+        memcpy(v->munion.arr.arr+len,arr,sizeof(light_value));
+        v->munion.arr.size += 1;
+    }
+    
+}
+void add_object(light_value *v,light_value *key,light_value *val)
+{
+    assert(v != NULL && v->type == LIGHT_OBJECT);
+    
+    if(v->munion.object.pmap == NULL)
+    {
+        v->munion.object.pmap  = (Map*)malloc(sizeof(Map));//map  init
+        *(v->munion.object.pmap) = map();
+    }
+    char *mstr = (char*)malloc(key->munion.str.len+1);
+    memcpy(mstr,key->munion.str.str,key->munion.str.len);
+    mstr[key->munion.str.len] = '\0';
+    Item *ite = New_Item(mstr, val);
+    add_item(v->munion.object.pmap, ite);
+    light_free(key);
+}
+
+
+
 void show_value(light_value *v)
 {
     size_t i;
@@ -56,6 +129,8 @@ int light_parse(light_value *v, const char* json)
     return ret;
 }
 
+
+/**********************************************************************************************/
 static void light_parse_whitespace(light_context* c) 
 {
     const char *p = c->json;
@@ -273,7 +348,6 @@ static void* light_context_push(light_context *c, size_t size)
 {
     void *ret;
     assert(c != NULL && size > 0);
-
     if(c->top + size >= c->size)
     {
         if(c->size == 0)
@@ -518,8 +592,12 @@ static void light_generate_string(light_context* c, const char* s, size_t len)
     size_t i, size;
     char* head, *p;
     assert(s != NULL);
-    p = head = light_context_push(c, size = len * 6 + 2);
+    size = len * 6 + 2;
+    head = light_context_push(c, size);
+    p  = head;
+    
     *p++ = '\"';//?
+    
     for (i = 0; i < len; i++) 
     {
         unsigned char ch = (unsigned char)s[i];
@@ -543,6 +621,7 @@ static void light_generate_string(light_context* c, const char* s, size_t len)
                     *p++ = s[i];
         }
     }
+    
     *p++ = '\"';
     c->top -= size - (p - head);
 }

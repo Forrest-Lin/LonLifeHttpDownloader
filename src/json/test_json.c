@@ -15,18 +15,25 @@ int main()
     char *s = "{\"title\": \"Design Patterns\",\"author\": [\"Erich Gamma\",\"Richard Helm\",\"RalphJohnson\",\"John Vlissides\"],\"year\": 2009,\"weight\": 1.8,\"hardcover\": true,\"publisher\": {\"Company\": \"Pearson Education\",\"Country\": \"India\"}}";
     light_value v;
     light_value e;
+    light_value *p = create_object();
+    light_value *a = create_array();
     char *ret;
     size_t len;
-    //printf("return:%d\n", light_parse(&v, "[ null , false , true , 123 , \"abc\" ]"));
+    add_object(p,create_string("name"),create_string("hhh"));
+    
+    add_array(a,create_string("Erich Gamma"));
+    add_array(a,create_string("Richard Helm"));
+    show_value(a);
+    
+    add_object(p,create_string("author"),a);
+    printf("object:");
+    show_value(p);
+    printf("\n");
+    light_free(p);
+    //light_parse(&v, s);
     //show_value(&v);
 
-    printf("parse return:%d\n", light_parse(&v, s));
-    show_value(&v);
-    printf("\n");  
-
-    printf("generate return:%d\n", light_generate(&v,&ret,&len ));
-    printf("ret:%s",ret);
-    printf("len:%d\n",len);
+ 
     
 
 
