@@ -15,15 +15,15 @@ void add_item(Map *pmap, Item *item) {
 	insert(pmap->tree, item, compare);
 }
 
-void mapshow(Map *pmap) {
+void mapshow(Map *pmap, FUNC show_item) {
 	show(pmap->tree, show_item);
 }
 
 int value_compare(void *p, void *key) {
 	return strcmp(((Item *)p)->key, key);
 }
-void *value(Map *pmap, char *key) {
-	Node *p = find(pmap->tree, value_compare, key);
+void *value(Map *pmap, const char *key) {
+	Node *p = find(pmap->tree, value_compare, (void *)key);
 	if (p == NULL) {
 		// not exsit
 		printf("Not Exsit\n");
@@ -33,6 +33,6 @@ void *value(Map *pmap, char *key) {
 }
 
 
-void map_clear(Map *pmap) {
+void map_clear(Map *pmap, FUNC inner_clear) {
 	clear(pmap->tree, inner_clear);
 }

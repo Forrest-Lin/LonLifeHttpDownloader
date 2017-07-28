@@ -34,8 +34,8 @@ int main () {
 	add_item(&mymap, item);
 	item = new_item("jmt", "30", 3);
 	add_item(&mymap, item);
-	mapshow(&mymap);
+	mapshow(&mymap, show_item);
 	printf("%s\n", value(&mymap, "jmt"));
-	map_clear(&mymap);
+	map_clear(&mymap, inner_clear);
 	return 0;
 }

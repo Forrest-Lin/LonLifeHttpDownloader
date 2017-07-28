@@ -22,23 +22,20 @@ struct Map{
 	RBTree *tree;
 };
 typedef struct Map Map;
+typedef void (*FUNC)(void *);
 
 //构造一个map
 Map map();
 //将元素加入map中
 void add_item(Map *pmap, Item *);
 //获取key对应value
-void *value(Map *, char *);
+void *value(Map *, const char *);
 //展示map中的数据
-void mapshow(Map *pmap);
+void mapshow(Map *pmap, FUNC show_item);
 //清楚map所占用的内存
-void map_clear(Map *);
+void map_clear(Map *, FUNC);
 
 //需要用户自己提供的函数
 //构造一个元素key:value
 Item *new_item(const char*, void *, int size);
-//展示一个item的数据
-void show_item(void *data);
-//清楚一个item占用的内存
-void inner_clear(void *);
 #endif
