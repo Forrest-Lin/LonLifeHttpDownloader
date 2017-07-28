@@ -66,5 +66,5 @@ void write_to_client(int fd, const char *file_name) {
 	}
 	close(filefd);
 	free(response);
-	map_clear(&header_map);
+	map_clear(&header_map, clear_node);
 }

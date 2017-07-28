@@ -9,13 +9,13 @@ Item *new_item(const char*key, void *value, int size) {
 	return pres;
 }
 
-void inner_clear(void *p) {
+void clear_node(void *p) {
 	Item * pitem= (Item *)p;
 	free(pitem->key);
 	free(pitem->value);
 	free(pitem);
 }
-void show_item(void *data) {
+void show_node(void *data) {
 	Item *p = (Item *)data;
 	printf("%s:%s\n", p->key, (char *)p->value);
 }
@@ -68,14 +68,17 @@ const char *get_request_method(Map *pmap) {
 	return (const char *)value(pmap, "method");
 }
 
-bool judge_file_exsit(const char *file_name, char *res) {
+bool judge_file_exsit(const char *file_name, char *res_buf) {
+	char res[128] = "";
 	const char *root = "../../docroot";
 	strcpy(res, root);
 	strcat(res, file_name);
 	if (strcmp(file_name, "/") == 0) {
 		strcat(res, "default.txt");
 	}
-	printf("%s\n", res);
+	if (res_buf != NULL) {
+		strcpy(res_buf, res);
+	}
 	return access(res, F_OK|R_OK) != -1;
 }
 
