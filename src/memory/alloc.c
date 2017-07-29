@@ -10,15 +10,22 @@ int Nnum = 20;
 void *lalloc(int size, int n){
 	// behavior is like calloc
 	assert (size > 0 && n > 0);
-	int alloc_size = size*n;
+	// for contain the size
+	int alloc_size = size*n + 2;
 	if (alloc_size > Max_size) {
-		return calloc(size, n);
+		void *p = calloc(size, n);
+		(*(char *)p) = alloc_size;
+		return ((char *)p) + 2;
 	}
 	void *res = chunk_alloc(alloc_size);
-	return res;
+	//最开始的2个字节存储size大小
+	*((char *)res) = alloc_size;
+	return ((char *)res) + 2;
 }
 
-void lfree(void *p, int size) {
+void lfree(void *p) {
+	p = (short *)p - 1;
+	short size= *(short *)p;
 	if (size > Max_size) {
 		free(p);
 	}
@@ -124,7 +131,7 @@ bool heap_refill(int index) {
 	}
 	// link for chunk_list
 	chunk *current = (chunk *)mem;
-	chunk *next = current + 1;
+	chunk *next = (chunk *)((char *)current + size);
 	chunk_list[index] = current;
 	//1->2 2->3 3->4 19->20 next(20)->NULL
 	int i = 0;
@@ -132,7 +139,7 @@ bool heap_refill(int index) {
 		current->next_chunk = next;
 
 		current = next;
-		++next;
+		next = (chunk *)((char *)next + size);
 	}	
 	next->next_chunk = NULL;
 	return true;

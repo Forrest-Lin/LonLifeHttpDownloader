@@ -25,8 +25,9 @@ typedef struct chunk{
 
 
 // main function
+// more 1 bytes for content the full size of mem
 void *lalloc(int, int);
-void lfree(void *, int);
+void lfree(void *);
 //alloc from chunk_list vs malloc
 void *chunk_alloc(int);
 // change size to n*8
