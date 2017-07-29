@@ -5,19 +5,19 @@
  *
  * */
 Item *new_item(const char*key, void *value, int size) {
-	Item *pres = (Item *)calloc(sizeof(Item), 1);
-	pres->key = (char *)calloc(sizeof(char), strlen(key)+1);
+	Item *pres = (Item *)lalloc(sizeof(Item), 1);
+	pres->key = (char *)lalloc(sizeof(char), strlen(key)+1);
 	strcpy(pres->key, key);
-	pres->value = calloc(sizeof(char), size);
+	pres->value = lalloc(sizeof(char), size);
 	strcpy((char*)pres->value, value);
 	return pres;
 }
 
 void inner_clear(void *p) {
 	Item * pitem= (Item *)p;
-	free(pitem->key);
-	free(pitem->value);
-	free(pitem);
+	lfree(pitem->key);
+	lfree(pitem->value);
+	lfree(pitem);
 }
 void show_item(void *data) {
 	Item *p = (Item *)data;

@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include "../memory/alloc.h"
 enum Color{
 	Red,
 	Black

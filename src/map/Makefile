@@ -1,5 +1,5 @@
 DIR = $(shell pwd)
-CC = gcc
+CC = clang 
 SRC = map.c rbTree.c 
 HEADER = $(DIR)/*.h
 OBJ := $(patsubst %.c,%.o, $(SRC))
@@ -7,17 +7,18 @@ NAME = map
 TESTC = test.c
 LIB_OBJ = libmap.a
 TEST = test
+DEPARG = -L../memory -lalloc
 
 all:  $(LIB_OBJ) $(TEST)
 
 $(OBJ): $(SRC)
-	gcc -fPIC -c $(SRC)
+	$(CC) -fPIC -c $(SRC)
 
 $(LIB_OBJ): $(OBJ) $(HEADER)
 	ar rcs $(LIB_OBJ) $(OBJ)
 
 $(TEST): $(TESTC)
-	gcc -o $(TEST) $(TESTC) -L. -l$(NAME)
+	$(CC) -o $(TEST) $(TESTC) -L. -l$(NAME) $(DEPARG)
 
 clean:
 	rm -rf $(OBJ)

@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 
+
 void _show(Node *p, Node *tail, ShowValue func) {
 	if (p->left != tail) _show(p->left, tail, func);
 	func(p->data);
@@ -25,7 +26,7 @@ void show(RBTree *tree, ShowValue func) {
 //node method
 Node *new_node(void *d, Node *parent, Node *tail) {
 	assert (d != NULL);
-	Node *pres_node = (Node *)calloc(sizeof(Node), 1);
+	Node *pres_node = (Node *)lalloc(sizeof(Node), 1);
 	pres_node->data = d;
 	pres_node->node_color = Red;
 	pres_node->parent = parent;
@@ -34,9 +35,9 @@ Node *new_node(void *d, Node *parent, Node *tail) {
 }
 
 RBTree *create_rb_tree() {
-	RBTree *new_tree = (RBTree *)calloc(sizeof(RBTree), 1);
+	RBTree *new_tree = (RBTree *)lalloc(sizeof(RBTree), 1);
 	//new_tree.root = NULL;
-	new_tree->tail = (Node *)calloc(sizeof(Node), 1);
+	new_tree->tail = (Node *)lalloc(sizeof(Node), 1);
 	new_tree->tail->node_color = Black;
 	//new_tree.other_info = NULL;
 	assert(new_tree != NULL);
@@ -106,6 +107,7 @@ bool insert(RBTree *tree, void *data, Compare com_func) {
 			return true;
 		}
 	}
+	return true;
 }
 
 /*
@@ -262,11 +264,11 @@ void _clear_node(Node *p, Node *tail, MemClear clear_func) {
 	if (p->right != tail) _clear_node(p->right, tail, clear_func);
 	if (clear_func != NULL)
 		clear_func(p->data);
-	free(p);
+	lfree(p);
 }
 void clear(RBTree *tree, MemClear clear_func) {
 	Node *p = tree->root;
 	if (p != NULL && p != tree->tail) _clear_node(p, tree->tail, clear_func);
-	free(tree->tail);
-	free(tree);
+	lfree(tree->tail);
+	lfree(tree);
 }
