@@ -48,7 +48,7 @@ int get_file_size(const char *file_name) {
 
 void write_to_client(int fd, const char *file_name) {
 	Map header_map = map();
-	char *response = (char *)calloc(sizeof(char), 128);
+	char *response = (char *)lalloc(sizeof(char), 128);
 	int total_len = get_file_size(file_name);
 	get_header_msg(&header_map, 200, "OK", total_len);
 	add_header(response, &header_map);
@@ -65,6 +65,6 @@ void write_to_client(int fd, const char *file_name) {
 		send(fd, response, strlen(response)+1, 0); 
 	}
 	close(filefd);
-	free(response);
+	lfree(response);
 	map_clear(&header_map, clear_node);
 }

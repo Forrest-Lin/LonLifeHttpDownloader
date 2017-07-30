@@ -1,19 +1,19 @@
 #include "parse_http.h"
 
 Item *new_item(const char*key, void *value, int size) {
-	Item *pres = (Item *)calloc(sizeof(Item), 1);
-	pres->key = (char *)calloc(sizeof(char), strlen(key)+1);
+	Item *pres = (Item *)lalloc(sizeof(Item), 1);
+	pres->key = (char *)lalloc(sizeof(char), strlen(key)+1);
 	strcpy(pres->key, key);
-	pres->value = calloc(sizeof(char), size);
+	pres->value = lalloc(sizeof(char), size);
 	strcpy((char*)pres->value, value);
 	return pres;
 }
 
 void clear_node(void *p) {
 	Item * pitem= (Item *)p;
-	free(pitem->key);
-	free(pitem->value);
-	free(pitem);
+	lfree(pitem->key);
+	lfree(pitem->value);
+	lfree(pitem);
 }
 void show_node(void *data) {
 	Item *p = (Item *)data;
@@ -21,45 +21,45 @@ void show_node(void *data) {
 }
 Map parse_request(const char *request) {
 	Map res_map = map();
-	char *tmp = (char *)calloc(sizeof(char), strlen(request)+1);
+	char *tmp = (char *)lalloc(sizeof(char), strlen(request)+1);
 	assert (tmp != NULL);
 	strcpy(tmp, request);
 
 	char *p = strtok(tmp, "\r\n");
 	// add method name
 	char *q = strchr(p, ' ');
-	char *buf = (char *)calloc(sizeof(char), q-p+1);
+	char *buf = (char *)lalloc(sizeof(char), q-p+1);
 	strncpy(buf, p, q-p);
 	add_item(&res_map, new_item("method", buf, strlen(buf)+1));
-	free(buf);
+	lfree(buf);
 
 
 	//add dest name
 	p = q + 1;
 	q = strchr(q+1, ' ');
-	buf = (char *)calloc(sizeof(char), q-p+1);
+	buf = (char *)lalloc(sizeof(char), q-p+1);
 	strncpy(buf, p, q-p);
 	add_item(&res_map, new_item("destfile", buf, strlen(buf)+1));
-	free(buf);
+	lfree(buf);
 
 	//add protocol type
 	q = q + 1;
-	buf = (char *)calloc(sizeof(char), strlen(q)+1);
+	buf = (char *)lalloc(sizeof(char), strlen(q)+1);
 	strncpy(buf, q, strlen(q));
 	add_item(&res_map, new_item("protype", buf, strlen(buf)+1));
-	free(buf);
+	lfree(buf);
 
 	while ((p = strtok(NULL, "\r\n")) != NULL) {
 		//add other msg consiss of ':'
 		q = strchr(p, ':');
-		char *key = (char *)calloc(sizeof(char), q-p+1);
-		char *value = (char *)calloc(sizeof(char), strlen(q)-1);
+		char *key = (char *)lalloc(sizeof(char), q-p+1);
+		char *value = (char *)lalloc(sizeof(char), strlen(q)-1);
 		assert (key != NULL && value != NULL);
 		strncpy(key, p, q-p);
 		strcpy(value, q+2);
 		add_item(&res_map, new_item(key, value, strlen(q)-1));
-		free(key);
-		free(value);
+		lfree(key);
+		lfree(value);
 	}
 	return res_map;
 }
