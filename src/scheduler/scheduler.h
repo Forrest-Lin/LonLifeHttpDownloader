@@ -3,6 +3,7 @@
 #include <stdbool.h> 
 #include "../json/light_json.h"
 #include "../memory/alloc.h"
+#include "../log/log.h"
 
 // need a json file in etc/server.json
 bool connect_servers();

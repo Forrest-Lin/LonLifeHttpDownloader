@@ -82,4 +82,77 @@ bool connect_servers(Map *pmap) {
 		// free mem
 		lfree(ip);
 	}
+	return true;
+}
+
+void self_start() {
+	// 8*13 = 104 -2 = 102
+	LogNotice("Configuring schduler message...");
+	char *json_str = (char *)lalloc(102, 1);
+	read_json_file("schduler.json", json_str);
+	LogNotice("Read json configure file");
+		
+
+	// get config
+	light_value schduler_config;
+	light_parse(&schduler_config, json_str);
+	// get ip
+	char *schduler_ip = (char *)lalloc(22, 1);
+	get_string(Value(&schduler_config, "schduler_ip"), schduler_ip);
+	// get port  because number is double so need tmp
+	double tmp;
+	get_number(Value(&schduler_config, "scheduler_port"), &tmp);
+	int schduler_port = (int)tmp;
+	// get balance method //here todos
+	char *method = (char *)lalloc(14, 1);
+	get_string(Value(&schduler_config, "balance_method"), method);
+
+	// bind schduler ip port and listen
+	int sersock = socket(AF_INET, SOCK_STREAM, 0);
+	struct sockaddr_in saddr;
+	memset(&saddr, 0, sizeof(saddr));
+	saddr.sin_family = AF_INET;
+	saddr.sin_port = htons(scheduler_port);
+	saddr.sin_addr.s_addr = inet_addr(schduler_ip);
+	int err = bind(sersock, (struct sockaddr *)&saddr, sizeof(struct sockaddr));
+	LogNotice("Binding socket address...");
+	if (err == -1){
+		LogFatal("Bind socket address failed");
+		return  err;
+	}
+
+	//create listen queue
+	err = listen(sersock, 5);
+	if (err == -1){
+		LogFatal("Listen api error");
+		return err;
+	}
+
+	struct sockaddr_in caddr;
+	int size = sizeof(struct sockaddr_in);
+
+	while (true){
+		// begin to accept a connection
+		int client = accept(sersock, (struct sockaddr*)&caddr, &size);
+		printf("A client connected successfully\n");
+		char buff[1024] = "";
+		recv(client, &buff, 1023, 0);
+		Map mmp = parse_request(buff);
+		const char *method = get_request_method(&mmp);
+		assert (strcmp(method, "GET") == 0);
+		const char *destfile = get_dest_file(&mmp);
+		char *res = (char *)calloc(sizeof(char), 60);
+		assert (res != NULL);
+		if (judge_file_exsit(destfile, res)) {
+			printf("%s:File exists\n", destfile);
+			write_to_client(client, res);
+		}
+		else {
+			printf("%s:File not exists\n", destfile);
+			//err_to_deal(client, res);
+		}
+		free(res);
+		close(client);
+	}
+	lfree(json_str);
 }
