@@ -61,7 +61,9 @@ void LogFatal(const char *msg) {
 	printf("\033[1;;31m%s\033[0m", prefix);
 	printf("\033[1;;31m%s\033[0m", msg);
 	printf("\033[1;;31m%s\033[0m\n", timer);
+	close(LOGFILE);
 	lfree(timer);
+	exit(-1);
 }
 
 void LogWarning(const char *msg) {
