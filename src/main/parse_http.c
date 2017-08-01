@@ -52,6 +52,9 @@ Map parse_request(const char *request) {
 	while ((p = strtok(NULL, "\r\n")) != NULL) {
 		//add other msg consiss of ':'
 		q = strchr(p, ':');
+		if (q == NULL) {
+			break;
+		}
 		char *key = (char *)lalloc(sizeof(char), q-p+1);
 		char *value = (char *)lalloc(sizeof(char), strlen(q)-1);
 		assert (key != NULL && value != NULL);
@@ -79,7 +82,7 @@ bool judge_file_exsit(const char *file_name, char *res_buf) {
 	if (res_buf != NULL) {
 		strcpy(res_buf, res);
 	}
-	return access(res, F_OK|R_OK) != -1;
+	return (access(res, F_OK|R_OK) != -1);
 }
 
 

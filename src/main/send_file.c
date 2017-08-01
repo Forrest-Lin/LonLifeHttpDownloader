@@ -68,3 +68,46 @@ void write_to_client(int fd, const char *file_name) {
 	lfree(response);
 	map_clear(&header_map, clear_node);
 }
+
+Map init_status_map() {
+	Map mmp = map();
+	add_item(&mmp, new_item("200", "OK", 3));
+	add_item(&mmp, new_item("400", "Bad Request", 12));
+	add_item(&mmp, new_item("404", "Not Found", 10));
+	add_item(&mmp, new_item("500", "Internal Server Error", 22));
+	return mmp;
+}
+
+const char *get_status_mean(Map *pmap, int status) {
+	char buf[4] = "";
+	sprintf(buf, "%d", status);
+	return (char *)value(pmap, buf);
+}
+
+void clear_status_map(Map *pmap) {
+	map_clear(pmap, clear_node);
+}
+
+void compound_json(bool flg, char *file_name, char *response_header, char *json_str) {
+	if (flg) {
+		//sprintf(json_str, "{\"status\":\"yes\", \"filename\":\"%s\", \"header\":\"%s\"}", file_name, response_header);
+		light_value *pobj = create_object();
+		add_object(pobj, create_string("status"), create_string("yes"));
+		add_object(pobj, create_string("filename"), create_string(file_name));
+		add_object(pobj, create_string("header"), create_string(response_header));
+		char *tmp = NULL;
+		light_generate(pobj, &tmp, NULL);
+		strcpy(json_str, tmp);
+		light_free(pobj);
+	}
+	else {
+		//sprintf(json_str, "{\"status\":\"no\", \"header\":\"%s\"}", response_header);
+		light_value *pobj = create_object();
+		add_object(pobj, create_string("status"), create_string("no"));
+		add_object(pobj, create_string("header"), create_string(response_header));
+		char *tmp = NULL;
+		light_generate(pobj, &tmp, NULL);
+		strcpy(json_str, tmp);
+		light_free(pobj);
+	}
+}

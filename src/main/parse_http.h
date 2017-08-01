@@ -1,4 +1,5 @@
 #include "../map/map.h"
+#include "../log/log.h"
 #include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
