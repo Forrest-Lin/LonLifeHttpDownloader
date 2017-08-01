@@ -4,6 +4,7 @@ OBJ = light_json.o
 TESTC = test_json.c
 MPATH = ../map/
 DEP = map
+DEPARG = -L../memory -lalloc
 
 all : libjson.a test
 
@@ -14,7 +15,7 @@ libjson.a: $(OBJ)
 	ar crs libjson.a $(OBJ)
 
 test: $(TESTC)
-	gcc -o test $(TESTC) -L. -ljson -L$(MPATH) -l$(DEP)
+	gcc -o test $(TESTC) -L. -ljson -L$(MPATH) -l$(DEP) $(DEPARG)
 
 clean:
 	rm -rf *.o

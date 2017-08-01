@@ -12,14 +12,19 @@
 
 int main()
 {
-    char *s = "{\"title\": \"Design Patterns\",\"author\": [\"Erich Gamma\",\"Richard Helm\",\"RalphJohnson\",\"John Vlissides\"],\"year\": 2009,\"weight\": 1.8,\"hardcover\": true,\"publisher\": {\"Company\": \"Pearson Education\",\"Country\": \"India\"}}";
+//    char *s = "{\"title\": \"Design Patterns\",\"author\": [\"Erich Gamma\",\"Richard Helm\",\"RalphJohnson\",\"John Vlissides\"],\"year\": 2009,\"weight\": 1.8,\"hardcover\": true,\"publisher\": {\"Company\": \"Pearson Education\",\"Country\": \"India\"}}";
+	char *s = "{\"status\":\"yes\", \"filename\":\"../../docroot/default.txt\", \"header\":\"HTTP/1.1 200 OK\\r\\nServer: Simple Http Server\\r\\nContent-Length: 13\\r\\n\\r\\n\"}";
     light_value v;
     //light_value e;
-    //light_value *p = create_object();
+    light_value *p = create_object();
     //light_value *a = create_array();
     //char *ret;
     //size_t len;
-    //add_object(p,create_string("name"),create_string("hhh"));
+    add_object(p,create_string("name"),create_string("hhh"));
+	char *str = NULL;
+	int len = 0;
+	light_generate(p, &str, &len);
+	printf("[len]:[%d]=>[value]:[%s]\n", len, str);
     //
     //add_array(a,create_string("Erich Gamma"));
     //add_array(a,create_string("Richard Helm"));
@@ -31,13 +36,11 @@ int main()
     //printf("\n");
     //light_free(p);
     light_parse(&v, s);
-	show_value(Value(&v, "title"));
-	char *p = (char *)calloc(20, 1);
-	assert (p != NULL);
-	get_string(Value(&v, "title"), p);
-	printf("%s\n", p);
+	char hgg_str[128] = "";
+	get_string(Value(&v, "filename"), hgg_str);
+	printf("%s\n", hgg_str);
 	light_free(&v);
-	free(p);
+	//free(p);
 
  
     
