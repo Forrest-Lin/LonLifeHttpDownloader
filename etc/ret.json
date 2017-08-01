@@ -1,0 +1,10 @@
+{
+	"status":"yes",
+	"header":"header message",
+	"filename":"file_name"
+}
+
+{
+	"status":"no",
+	"header":"header message"
+}
