@@ -7,6 +7,7 @@
 #include <stdbool.h>
 #include "../main/parse_http.h"
 
+
 void build_push_string(const char *file_path, char *push_string) {
 	// file path is like /doc/index.html
 	assert (judge_file_exsit(file_path, NULL) == true);
@@ -42,19 +43,58 @@ void read_json_file(const char *filename, char *str) {
 	close(fd);
 }
 
-bool connect_servers(Map *pmap) {
-	//todo wait for json deal
-	char *json_str = (char *)lalloc(512, 1);
-	read_json_file("server.json", json_str);
-	int server_num = -1;
+void connect_servers() {
+	// 8*13 = 104 -2 = 102
+	LogNotice("Configuring schduler message...");
+	char *json_str = (char *)lalloc(102, 1);
+	read_json_file("schduler.json", json_str);
+	LogNotice("Read json configure file");
+		
+
+	// get config
+	light_value schduler_config;
+	light_parse(&schduler_config, json_str);
+	// get ip
+	char *schduler_ip = (char *)lalloc(22, 1);
+	get_string(Value(&schduler_config, "schduler_ip"), schduler_ip);
+	// get port  because number is double so need tmp
 	double tmp;
+	get_number(Value(&schduler_config, "schduler_port"), &tmp);
+	int schduler_port = (int)tmp;
+	// get balance method //here todos
+	char *method = (char *)lalloc(14, 1);
+	get_string(Value(&schduler_config, "balance_method"), method);
+
+	// bind schduler ip port and listen
+	int sersock = socket(AF_INET, SOCK_STREAM, 0);
+	struct sockaddr_in saddr;
+	memset(&saddr, 0, sizeof(saddr));
+	saddr.sin_family = AF_INET;
+	saddr.sin_port = htons(schduler_port);
+	saddr.sin_addr.s_addr = inet_addr(schduler_ip);
+	int err = bind(sersock, (struct sockaddr *)&saddr, sizeof(struct sockaddr));
+	LogNotice("Binding socket address...");
+	if (err == -1){
+		LogFatal("Bind socket address failed");
+	}
+	lfree(json_str);
+
+	//todo wait for json deal
+	LogNotice("Configuring server message...");
+	json_str = (char *)lalloc(512, 1);
+	read_json_file("server.json", json_str);
+	LogNotice("Read json configure file");
+	int server_num = -1;
 
 
 	light_value v;
 	light_parse(&v, json_str);
 	get_number(Value(&v, "server_num"), &tmp);
 	server_num = (int)tmp;
-
+	
+	// schduler message
+	FdSet *fd_set = (FdSet*)lalloc(sizeof(FdSet), 1);
+	init_fd_array(fd_set, server_num);
 	int i = 0;
 	light_value *p = Value(&v, "server_lists");
 	for (; i<server_num; ++i) {
@@ -75,57 +115,24 @@ bool connect_servers(Map *pmap) {
 		server_addr.sin_addr.s_addr = inet_addr(ip);
 
 		int res = connect(cli, (struct sockaddr*)&server_addr, sizeof(struct sockaddr));
+		LogNotice("Connected server ok");
 		if (res != 0) {
-			perror("BIND SERVER ERROR");
+			LogFatal("Connect server failed");
 		}
 
+		add_fd(fd_set, cli);
 		// free mem
 		lfree(ip);
 	}
-	return true;
-}
+	LogNotice("Connected all servers ok");
+	lfree(json_str);
 
-void self_start() {
-	// 8*13 = 104 -2 = 102
-	LogNotice("Configuring schduler message...");
-	char *json_str = (char *)lalloc(102, 1);
-	read_json_file("schduler.json", json_str);
-	LogNotice("Read json configure file");
-		
 
-	// get config
-	light_value schduler_config;
-	light_parse(&schduler_config, json_str);
-	// get ip
-	char *schduler_ip = (char *)lalloc(22, 1);
-	get_string(Value(&schduler_config, "schduler_ip"), schduler_ip);
-	// get port  because number is double so need tmp
-	double tmp;
-	get_number(Value(&schduler_config, "scheduler_port"), &tmp);
-	int schduler_port = (int)tmp;
-	// get balance method //here todos
-	char *method = (char *)lalloc(14, 1);
-	get_string(Value(&schduler_config, "balance_method"), method);
-
-	// bind schduler ip port and listen
-	int sersock = socket(AF_INET, SOCK_STREAM, 0);
-	struct sockaddr_in saddr;
-	memset(&saddr, 0, sizeof(saddr));
-	saddr.sin_family = AF_INET;
-	saddr.sin_port = htons(scheduler_port);
-	saddr.sin_addr.s_addr = inet_addr(schduler_ip);
-	int err = bind(sersock, (struct sockaddr *)&saddr, sizeof(struct sockaddr));
-	LogNotice("Binding socket address...");
-	if (err == -1){
-		LogFatal("Bind socket address failed");
-		return  err;
-	}
-
+	// waiting for client
 	//create listen queue
 	err = listen(sersock, 5);
 	if (err == -1){
 		LogFatal("Listen api error");
-		return err;
 	}
 
 	struct sockaddr_in caddr;
@@ -133,26 +140,74 @@ void self_start() {
 
 	while (true){
 		// begin to accept a connection
+		LogNotice("Waiting for client to connect...");
 		int client = accept(sersock, (struct sockaddr*)&caddr, &size);
-		printf("A client connected successfully\n");
-		char buff[1024] = "";
-		recv(client, &buff, 1023, 0);
-		Map mmp = parse_request(buff);
-		const char *method = get_request_method(&mmp);
-		assert (strcmp(method, "GET") == 0);
-		const char *destfile = get_dest_file(&mmp);
-		char *res = (char *)calloc(sizeof(char), 60);
-		assert (res != NULL);
-		if (judge_file_exsit(destfile, res)) {
-			printf("%s:File exists\n", destfile);
-			write_to_client(client, res);
+		LogWarning("A client connected...");
+
+		// set noblocking
+		/*int old_flags = fcntl(client, F_GETFL);
+		int error = fcntl(client, F_SETFL, old_flags|O_NONBLOCK);
+		if (error == -1) {
+			LogFatal("Set client nonblocking failed");
 		}
-		else {
-			printf("%s:File not exists\n", destfile);
-			//err_to_deal(client, res);
+		*/
+		// choose one server
+		int sfd = get_server_fd(fd_set);
+
+		//passing data
+		char *buf = (char *)lalloc(sizeof(char), 1022);
+		LogNotice("Begin to pass data...");
+		read(client, buf, 1022);
+		write(sfd, buf, strlen(buf));
+		/*
+		while (recv(client, buf, 21, MSG_DONTWAIT) != -1) {
+			write(sfd, buf, strlen(buf));
+			memset(buf, 0, strlen(buf));
 		}
-		free(res);
+		*/
+		memset(buf, 0, strlen(buf));
+		read(sfd, buf, 1022);
+
+		//4 parse json and give client response
+
+		//4.1
+		light_value vp;
+		light_parse(&vp, buf);
+		char *status_str = lalloc(sizeof(char), 4);
+		char *header_str = lalloc(sizeof(char), 126);
+		get_string(Value(&vp, "status"), status_str);
+		get_string(Value(&vp, "header"), header_str);
+
+
+		//4.2
+		//pass response header
+		write(client, header_str, strlen(header_str));
+
+		if (strcmp(status_str, "yes") == 0) {
+			//pass file content
+			char *filename = lalloc(sizeof(char), 30);
+			get_string(Value(&vp, "filename"), filename);
+			send_file(client, filename);
+			lfree(filename);
+		}
+		light_free(&vp);
+		lfree(status_str);
+		lfree(header_str);
+		lfree(buf);
 		close(client);
 	}
-	lfree(json_str);
+}
+
+void send_file(int fd, const char *filename) {
+	// won't do check for file
+	char *buf = (char *)lalloc(sizeof(char), 32);
+	int filefd = open(filename, O_RDONLY);
+	if (filefd == -1) {
+		LogFatal("Open file failed");
+	}
+	
+	while (read(filefd, buf, 31) != 0) {
+		write(fd, buf, strlen(buf));
+	}
+	lfree(buf);
 }
