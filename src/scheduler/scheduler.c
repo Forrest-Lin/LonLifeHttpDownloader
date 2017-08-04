@@ -158,13 +158,16 @@ void connect_servers() {
 		char *buf = (char *)lalloc(sizeof(char), 1022);
 		LogNotice("Begin to pass data...");
 		read(client, buf, 1022);
-		write(sfd, buf, strlen(buf));
+		char *sendbuf = (char *)lalloc(sizeof(char), strlen(buf)+2+4);
+		sprintf(sendbuf, "%d##%s", strlen(buf), buf);
+		write(sfd, sendbuf, strlen(sendbuf));
 		/*
 		while (recv(client, buf, 21, MSG_DONTWAIT) != -1) {
 			write(sfd, buf, strlen(buf));
 			memset(buf, 0, strlen(buf));
 		}
 		*/
+		lfree(sendbuf);
 		memset(buf, 0, strlen(buf));
 		read(sfd, buf, 1022);
 
