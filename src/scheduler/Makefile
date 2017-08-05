@@ -1,13 +1,13 @@
 DIR = $(shell pwd)
 CC = gcc
-SRC = scheduler.c algorithm.c
+SRC = scheduler.c algorithm.c thread.c
 HEADER = $(DIR)/*.h
 OBJ := $(patsubst %.c,%.o, $(SRC))
 NAME = scheduler
 TESTC = test.c
 LIB_OBJ = libscheduler.a
 TEST = test
-DEPARG = -L../json -ljson -L../map -lmap -L../memory -lalloc -L../log -llog
+DEPARG = -L../json -ljson -L../map -lmap -L../memory -lalloc -L../log -llog -lpthread
 
 all:  $(LIB_OBJ) $(TEST)
 

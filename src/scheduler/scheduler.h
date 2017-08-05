@@ -6,6 +6,8 @@
 #include "../log/log.h"
 #include "algorithm.h"
 #include <fcntl.h>
+#include "thread.h"
+#include "pipe.h"
 
 // need a json file in etc/server.json
 void connect_servers();

@@ -115,10 +115,10 @@ void connect_servers() {
 		server_addr.sin_addr.s_addr = inet_addr(ip);
 
 		int res = connect(cli, (struct sockaddr*)&server_addr, sizeof(struct sockaddr));
-		LogNotice("Connected server ok");
 		if (res != 0) {
 			LogFatal("Connect server failed");
 		}
+		LogNotice("Connected server ok");
 
 		add_fd(fd_set, cli);
 		// free mem
@@ -134,71 +134,30 @@ void connect_servers() {
 	if (err == -1){
 		LogFatal("Listen api error");
 	}
+	// start mutil_thread
+	const int thread_num = 3;
+	pthread_t thread_array[3] = {};
+	Pipe fdpipe;
+	init_pipe(&fdpipe);
+	set_no_blocking(fdpipe.fd[0]);
 
-	struct sockaddr_in caddr;
-	int size = sizeof(struct sockaddr_in);
+	i = 0;
+	LogNotice("Creating threads...");
+	// set thread arg
+	Argument arg;
+	arg.ppp = &fdpipe;
+	arg.fd_set = fd_set;
 
-	while (true){
-		// begin to accept a connection
-		LogNotice("Waiting for client to connect...");
-		int client = accept(sersock, (struct sockaddr*)&caddr, &size);
-		LogWarning("A client connected...");
-
-		// set noblocking
-		/*int old_flags = fcntl(client, F_GETFL);
-		int error = fcntl(client, F_SETFL, old_flags|O_NONBLOCK);
-		if (error == -1) {
-			LogFatal("Set client nonblocking failed");
+	for (; i<thread_num; ++i) {
+		err = pthread_create(thread_array+i, NULL, dealing_io, &arg);
+		if (err == -1) {
+			LogFatal("Create thread failed");
 		}
-		*/
-		// choose one server
-		int sfd = get_server_fd(fd_set);
-
-		//passing data
-		char *buf = (char *)lalloc(sizeof(char), 1022);
-		LogNotice("Begin to pass data...");
-		read(client, buf, 1022);
-		char *sendbuf = (char *)lalloc(sizeof(char), strlen(buf)+2+4);
-		sprintf(sendbuf, "%d##%s", strlen(buf), buf);
-		write(sfd, sendbuf, strlen(sendbuf));
-		/*
-		while (recv(client, buf, 21, MSG_DONTWAIT) != -1) {
-			write(sfd, buf, strlen(buf));
-			memset(buf, 0, strlen(buf));
-		}
-		*/
-		lfree(sendbuf);
-		memset(buf, 0, strlen(buf));
-		read(sfd, buf, 1022);
-
-		//4 parse json and give client response
-
-		//4.1
-		light_value vp;
-		light_parse(&vp, buf);
-		char *status_str = lalloc(sizeof(char), 4);
-		char *header_str = lalloc(sizeof(char), 126);
-		get_string(Value(&vp, "status"), status_str);
-		get_string(Value(&vp, "header"), header_str);
-
-
-		//4.2
-		//pass response header
-		write(client, header_str, strlen(header_str));
-
-		if (strcmp(status_str, "yes") == 0) {
-			//pass file content
-			char *filename = lalloc(sizeof(char), 30);
-			get_string(Value(&vp, "filename"), filename);
-			send_file(client, filename);
-			lfree(filename);
-		}
-		light_free(&vp);
-		lfree(status_str);
-		lfree(header_str);
-		lfree(buf);
-		close(client);
+		LogNotice("Created one thread ok");
 	}
+
+	// main thread
+	getting_connect(fd, &fdpipe);
 }
 
 void send_file(int fd, const char *filename) {
