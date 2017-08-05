@@ -157,7 +157,7 @@ void connect_servers() {
 	}
 
 	// main thread
-	getting_connect(fd, &fdpipe);
+	getting_connect(sersock, &fdpipe);
 }
 
 void send_file(int fd, const char *filename) {

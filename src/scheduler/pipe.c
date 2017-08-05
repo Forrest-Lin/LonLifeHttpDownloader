@@ -13,8 +13,8 @@ void init_pipe(Pipe *ppp) {
 	}
 }
 
-void pip_send(Pipe *ppp, int fd) {
-	int error = pthread_mutx_lock(&ppp->mutx);
+void pipe_send(Pipe *ppp, int fd) {
+	int error = pthread_mutex_lock(&ppp->mutx);
 	if (error == -1) {
 		perror("Lock");
 		LogFatal("Try to lock mutex when send fd failed");
@@ -27,7 +27,7 @@ void pip_send(Pipe *ppp, int fd) {
 		LogFatal("Send fd into Pipe failed");
 	}
 
-	error = pthread_mutx_unlock(&ppp->mutx);
+	error = pthread_mutex_unlock(&ppp->mutx);
 	if(error == -1) {
 		perror("Unlock");
 		LogFatal("Try to unlock mutex when send fd failed");
@@ -36,13 +36,13 @@ void pip_send(Pipe *ppp, int fd) {
 
 
 void pipe_read(Pipe *ppp, int *pfd) {
-	int error = pthread_mutx_lock(&ppp->mutx);
+	int error = pthread_mutex_lock(&ppp->mutx);
 	if (error == -1) {
 		perror("Lock");
 		LogFatal("Try to lock mutex when recv fd failed");
 	}
 
-	char *rcvbuf[7] = "";
+	char rcvbuf[7] = "";
 	error = recv(ppp->fd[0], rcvbuf, 6, MSG_PEEK);
 	if (error == -1 && errno != EAGAIN) {
 		perror("Recv");
@@ -63,7 +63,7 @@ void pipe_read(Pipe *ppp, int *pfd) {
 		}
 	}
 
-	error = pthread_mutx_unlock(&ppp->mutx);
+	error = pthread_mutex_unlock(&ppp->mutx);
 	if (error == -1) {
 		perror("Unlock");
 		LogFatal("Try to unlock mutex when recv fd failed");

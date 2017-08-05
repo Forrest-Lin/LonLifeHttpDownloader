@@ -19,7 +19,7 @@ void *dealing_io(void *arg) {
 	}
 	int epollfd = error;
 	const Max_epoll_size = 128;
-	struct event *evnts = lalloc(sizeof(struct event), Max_epoll_size);
+	struct epoll_event *evnts = lalloc(sizeof(struct epoll_event), Max_epoll_size);
 
 	while (true) {
 		int new_fd = -1;
@@ -38,7 +38,7 @@ void *dealing_io(void *arg) {
 		}
 		// start epoll wait
 		LogNotice("=>Epoll wait for data arriving...");
-		error = epoll_wait(epollfd, evtns, Max_epoll_size, -1);
+		error = epoll_wait(epollfd, evnts, Max_epoll_size, -1);
 		if (error == -1) {
 			perror("=>EPOLL WAIT ERROR");
 			LogFatal("=>Epoll wait failed");
@@ -48,8 +48,8 @@ void *dealing_io(void *arg) {
 		// deal arrived fd
 		int i = 0;
 		for (; i<ready_num; ++i) {
-			int ready_fd = evtns[i].data.fd;
-			if (evtns[i].events & EPOLLIN) {
+			int ready_fd = evnts[i].data.fd;
+			if (evnts[i].events & EPOLLIN) {
 				// almost is here
 
 				char *readbuf = (char *)lalloc(sizeof(char), 30);
@@ -57,9 +57,9 @@ void *dealing_io(void *arg) {
 				while (true) {
 					// here is non blocking  so reading finish it
 					memset(readbuf, 0, strlen(readbuf));
-					int l = recv(ready_fd, readbuf. 30, 0);
+					int l = recv(ready_fd, readbuf, 30, 0);
 					if (l < 0) {
-						if (erron == EAGAIN || erron == EWOULDBLOCK) {
+						if (errno == EAGAIN || errno == EWOULDBLOCK) {
 							LogWarning("=>Finish reading and begin to deal it...");
 							break;
 						}
@@ -104,8 +104,8 @@ void *dealing_io(void *arg) {
 					LogFatal("=>Send data to server failed, please check...");
 				}
 			}
-			else if (evtns[i].events & EPOLL_OUT) {
-				int ready_fd = evtns[i].data.fd;
+			else if (evnts[i].events & EPOLLOUT) {
+				int ready_fd = evnts[i].data.fd;
 				//Stick package
 				char *json_str = (char *)lalloc(sizeof(char), 510);
 				char *buf = (char *)lalloc(sizeof(char), 30);
@@ -151,7 +151,7 @@ void *dealing_io(void *arg) {
 					}
 
 					left_size -= l;
-					stcat(json_str, buf);
+					strcat(json_str, buf);
 				}
 				lfree(buf);
 
@@ -177,7 +177,7 @@ void *dealing_io(void *arg) {
 					LogNotice("=>File exsit, so send file...");
 					char *filename = lalloc(sizeof(char), 30);
 					get_string(Value(&vp, "filename"), filename);
-					send_file(client, filename);
+					send_file(clientfd, filename);
 					lfree(filename);
 				}
 				light_free(&vp);
@@ -202,7 +202,7 @@ void getting_connect(int fd, Pipe *ppp) {
 	while (true) {
 		// begin to accept a connection
 		LogNotice("Waiting for client to connect...");
-		int client = accept(sersock, (struct sockaddr*)&caddr, &size);
+		int client = accept(fd, (struct sockaddr*)&caddr, &size);
 		if (client == -1) {
 			perror("ACCEPT ERROR");
 			LogFatal("Get a client connet failed");

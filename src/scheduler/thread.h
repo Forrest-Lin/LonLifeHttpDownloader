@@ -2,6 +2,10 @@
 #define _THREAD_H_
 #include <stdbool.h> 
 #include <pthread.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <string.h>
 #include "pipe.h"
 #include "../json/light_json.h"
 #include "../memory/alloc.h"
