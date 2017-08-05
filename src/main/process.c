@@ -163,6 +163,7 @@ void create_reactor(int schduler, int msgid, struct producer_consumer *pc) {
 			if (left_size < 29) {
 				readsize = left_size;
 			}
+			memset(readbuf, 0, strlen(readbuf));
 			len = read(schduler, readbuf, readsize);
 			if (len == 0) {
 				LogFatal("Schduler closed the connection but reading unfinish");
