@@ -67,3 +67,8 @@ void unlock_consume(struct producer_consumer *pc) {
 	sem_v(pc->s1);
 }
 
+void print_value(struct producer_consumer *pc) {
+	union semun semtmp;
+	printf("s1:%d][s2:%d\n", semctl(pc->s1, 0, GETVAL, semtmp), 
+			semctl(pc->s2, 0, GETVAL, semtmp));
+}

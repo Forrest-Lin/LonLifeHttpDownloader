@@ -50,5 +50,5 @@ int random_get(FdSet *fd_set) {
 	srand((unsigned)time(NULL));
 	int indx = rand()%fd_set->fd_nums;
 	++(fd_set->task_nums[indx]);
-	return fd_set->fd_array[indx];
+	return fd_set->fd_array[2];
 }

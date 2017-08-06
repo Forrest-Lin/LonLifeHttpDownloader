@@ -23,4 +23,5 @@ void lock_produce(struct producer_consumer *pc);
 void unlock_produce(struct producer_consumer *pc);
 void lock_consume(struct producer_consumer *pc);
 void unlock_consume(struct producer_consumer *pc);
+void print_value(struct producer_consumer *pc);
 #endif

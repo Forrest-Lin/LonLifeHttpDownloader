@@ -129,10 +129,10 @@ void *dealing_io(void *arg) {
 					char *fd_str = lalloc(sizeof(char), 6);
 					get_string(Value(&vp, "status"), status_str);
 					get_string(Value(&vp, "header"), header_str);
-					get_string(Value(&vp, "clientfd"), fd_str);
+					get_string(Value(&vp, "clientsign"), fd_str);
 
 					int clientfd = -1;
-					sscanf(fd_str, "%d", clientfd);
+					sscanf(fd_str, "%d", &clientfd);
 					//pass response header
 					LogNotice("=>Sending header data to client...");
 					write(clientfd, header_str, strlen(header_str));
@@ -192,10 +192,10 @@ void *dealing_io(void *arg) {
 					LogNotice("=>Begin to pass data...");
 
 					// add clien sign
-					char addbuf[16] = "";
+					char addbuf[20] = "";
 					sprintf(addbuf, "clientsign: %d", ready_fd);
 					strcat(request, addbuf);
-					char *sendbuf = (char *)lalloc(sizeof(char), strlen(request)+2+4);
+					char *sendbuf = (char *)lalloc(sizeof(char), strlen(request)+2+5+1);
 					sprintf(sendbuf, "%d##%s", strlen(request), request);
 					lfree(request);
 					// send to server

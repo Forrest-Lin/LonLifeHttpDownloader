@@ -42,6 +42,7 @@ void deal_requests(int schduler, int msgid, struct producer_consumer *pc) {
 		// get one request from queue
 		msgbuf item;
 		lock_consume(pc);
+		print_value(pc);
 		LogNotice("=>Getting request from queue...");
 		int error = msgrcv(msgid, &item, sizeof(item.mtext), 0, IPC_NOWAIT);
 		if (error == -1) {
@@ -93,6 +94,7 @@ void deal_requests(int schduler, int msgid, struct producer_consumer *pc) {
 		char *response = (char *)lalloc(sizeof(char), 254);
 		add_header(response, &response_map);
 		map_clear(&response_map, clear_node);
+		map_clear(&mmp, clear_node);
 
 		//4.compound json message
 		char *json_res = (char *)lalloc(sizeof(char), 510);
@@ -183,13 +185,17 @@ void create_reactor(int schduler, int msgid, struct producer_consumer *pc) {
 		// finish one, so put it into msg queue
 		LogNotice("Sending data into message queue...");
 		// p
+		print_value(pc);
 		lock_produce(pc);
+		print_value(pc);
 		int error = msgsnd(msgid, &item, sizeof(item.mtext), IPC_NOWAIT);
 		if (error == -1) {
 			perror("MSGSEND ERROR");
 			LogFatal("Send message into queue failed");
 		}
+		print_value(pc);
 		unlock_produce(pc);
+		print_value(pc);
 		//v
 	}
 }
