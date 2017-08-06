@@ -94,7 +94,6 @@ void deal_requests(int schduler, int msgid, struct producer_consumer *pc) {
 		char *response = (char *)lalloc(sizeof(char), 254);
 		add_header(response, &response_map);
 		map_clear(&response_map, clear_node);
-		map_clear(&mmp, clear_node);
 
 		//4.compound json message
 		char *json_res = (char *)lalloc(sizeof(char), 510);
@@ -102,6 +101,7 @@ void deal_requests(int schduler, int msgid, struct producer_consumer *pc) {
 		compound_json(flg, res, response, client_sign, json_res);
 		lfree(res);
 		lfree(response);
+		map_clear(&mmp, clear_node);
 
 		// pass json_res to schduler
 		//Stick package
