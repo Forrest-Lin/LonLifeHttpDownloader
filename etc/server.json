@@ -3,18 +3,18 @@
   "server_lists": [
     {
       "server_name": "test1",
-      "server_ip": "37.139.29.127",
-      "server_port": 7801
+      "server_ip": "95.85.19.50",
+      "server_port": 7800
     },
     {
       "server_name": "test2",
-      "server_ip": "37.139.29.127",
-      "server_port": 7802
+      "server_ip": "95.85.32.130",
+      "server_port": 7800
     },
     {
       "server_name": "test3",
-      "server_ip": "37.139.29.127",
-      "server_port": 7803
+      "server_ip": "95.85.33.48",
+      "server_port": 7800
     }
   ],
   "scheduler_method": "hash"
