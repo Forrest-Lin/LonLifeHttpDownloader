@@ -19,6 +19,9 @@ void clear_fd_array(FdSet *);
 void add_fd(FdSet *, int);
 int get_server_fd(FdSet *);
 int random_get(FdSet*);
+int fd_index(FdSet *, int);
+int fd_num(FdSet *);
+bool in_range(FdSet *fd_set, int fd);
 /*
 int robin_get();
 int hash_get();

@@ -56,6 +56,7 @@ void deal_requests(int schduler, int msgid, struct producer_consumer *pc) {
 		LogNotice("=>Parsing http request...");
 		Map mmp = parse_request(item.mtext);
 		const char *method = get_request_method(&mmp);
+		const char *client_sign = get_client_sign(&mmp);
 		if (strcmp(method, "GET") != 0) {
 			LogWarning("=>Client give not get method");
 			status_code = 400;
@@ -96,7 +97,7 @@ void deal_requests(int schduler, int msgid, struct producer_consumer *pc) {
 		//4.compound json message
 		char *json_res = (char *)lalloc(sizeof(char), 510);
 		LogNotice("=>Compounding json message...");
-		compound_json(flg, res, response, json_res);
+		compound_json(flg, res, response, client_sign, json_res);
 		lfree(res);
 		lfree(response);
 

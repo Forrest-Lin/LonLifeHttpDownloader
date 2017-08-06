@@ -13,3 +13,4 @@ bool judge_file_exsit(const char *filename, char *res);
 const char *get_dest_file(Map *pmap);
 void clear_node(void *);
 void show_node(void *);
+const char *get_client_sign(Map *);

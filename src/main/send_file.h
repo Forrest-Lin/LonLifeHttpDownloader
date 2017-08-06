@@ -19,5 +19,5 @@ const char *get_status_mean(Map *, int);
 void clear_status_map(Map *pmap);
 
 //                 flg yes, no   , full file name
-void compound_json(bool flg, char *file_name, char *response_header, char *json_res);
+void compound_json(bool flg, const char *file_name, const char *response_header, const char *clien_sign, char *json_res);
 #endif

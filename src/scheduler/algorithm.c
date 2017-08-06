@@ -23,8 +23,27 @@ void add_fd(FdSet *fd_set, int fd) {
 	(fd_set->fd_array)[(fd_set->fd_fill_index)++] = fd;
 }
 
+int fd_index(FdSet *fd_set, int i) {
+	return fd_set->fd_array[i];
+}
+
+int fd_num(FdSet *fd_set) {
+	return fd_set->fd_nums;
+}
+
 int get_server_fd(FdSet *fd_set) {
 	return random_get(fd_set);
+}
+
+bool in_range(FdSet *fd_set, int fd) {
+	int i = 0;
+	int num = fd_set->fd_nums;
+	for (; i<num; ++i) {
+		if (fd == fd_set->fd_array[i]) {
+			return true;
+		}
+	}
+	return false;
 }
 
 int random_get(FdSet *fd_set) {

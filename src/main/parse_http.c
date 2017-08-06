@@ -89,3 +89,7 @@ bool judge_file_exsit(const char *file_name, char *res_buf) {
 const char *get_dest_file(Map *pmap) {
 	return (const char *)value(pmap, "destfile");
 }
+
+const char *get_client_sign(Map *pmap) {
+	return (const char *)value(pmap, "clientsign");
+}

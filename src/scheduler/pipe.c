@@ -39,35 +39,36 @@ void pipe_send(Pipe *ppp, int fd) {
 void pipe_read(Pipe *ppp, int *pfd) {
 	int error = pthread_mutex_lock(&ppp->mutx);
 	if (error == -1) {
-		perror("Lock");
-		LogFatal("Try to lock mutex when recv fd failed");
+		perror("=>Lock");
+		LogFatal("=>Try to lock mutex when recv fd failed");
 	}
 
 	char rcvbuf[7] = "";
 	error = recv(ppp->fd[0], rcvbuf, 6, MSG_PEEK);
 	if (error == -1 && errno != EAGAIN) {
-		perror("Recv");
-		LogFatal("Recv fd from Pipe failed with PEEK flg");
+		perror("=>Recv");
+		LogFatal("=>Recv fd from Pipe failed with PEEK flg");
 	}
 	else if (error != -1) {
+		LogWarning(rcvbuf);
 		char *p = strchr(rcvbuf, '#');
 		if (p == NULL) {
-			LogFatal("Not get pipe gap \"#\"");
+			LogFatal("=>Not get pipe gap \"#\"");
 		}
 		sscanf(rcvbuf, "%d", pfd);
 		int len = p - rcvbuf + 1;
 		// unuseful data
-		error = recv(ppp->fd[1], rcvbuf, len, 0);
+		error = recv(ppp->fd[0], rcvbuf, len, 0);
 		if (error == -1) {
-			perror("Recv");
-			LogFatal("Recv fd from Pipe failed with 0 with PEEK flg");
+			perror("=>Recv");
+			LogFatal("=>Recv fd from Pipe failed with 0 with PEEK flg");
 		}
 	}
 
 	error = pthread_mutex_unlock(&ppp->mutx);
 	if (error == -1) {
-		perror("Unlock");
-		LogFatal("Try to unlock mutex when recv fd failed");
+		perror("=>Unlock");
+		LogFatal("=>Try to unlock mutex when recv fd failed");
 	}
 }
 
