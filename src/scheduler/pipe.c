@@ -1,7 +1,8 @@
 #include "pipe.h"
 
 void init_pipe(Pipe *ppp) {
-	int error = pipe(ppp->fd);
+	//int error = pipe(ppp->fd);
+	int error = socketpair(AF_UNIX, SOCK_STREAM, 0, ppp->fd);
 	if (error == -1) {
 		LogFatal("Init pipe for thread communication failed");
 	}
@@ -53,7 +54,7 @@ void pipe_read(Pipe *ppp, int *pfd) {
 		if (p == NULL) {
 			LogFatal("Not get pipe gap \"#\"");
 		}
-		sscanf(rcvbuf, "%d", *pfd);
+		sscanf(rcvbuf, "%d", pfd);
 		int len = p - rcvbuf + 1;
 		// unuseful data
 		error = recv(ppp->fd[1], rcvbuf, len, 0);

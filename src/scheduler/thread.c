@@ -24,6 +24,9 @@ void *dealing_io(void *arg) {
 	while (true) {
 		int new_fd = -1;
 		pipe_read(parg->ppp, &new_fd);
+		if (new_fd == -1) {
+			continue;
+		}
 		LogNotice("=>Getted one fd from Pipe Ok");
 		// create evnt types
 		struct epoll_event evnt;
