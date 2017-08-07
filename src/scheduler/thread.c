@@ -39,25 +39,26 @@ void *dealing_io(void *arg) {
 	while (true) {
 		int new_fd = -1;
 		pipe_read(parg->ppp, &new_fd);
-		printf("reading a fd from pipe:%d\n", new_fd);
-		if (new_fd == -1) {
-			continue;
-		}
-		LogNotice("=>Getted one fd from Pipe Ok");
-		// create evnt types
-		struct epoll_event evnt;
-		evnt.events = EPOLLIN|EPOLLET;
-		evnt.data.fd = new_fd;
-		LogNotice("=>Adding new fd into epoll");
-		error = epoll_ctl(epollfd, EPOLL_CTL_ADD, new_fd, &evnt);
-		set_no_blocking(new_fd);
-		if (error == -1) {
-			perror("=>EPOLL_CTL_ADD ERROR");
-			LogFatal("=>Add fd into epoll failed");
+		if (new_fd != -1) {
+			LogNotice("=>Getted one fd from Pipe Ok");
+			// create evnt types
+			struct epoll_event evnt;
+			evnt.events = EPOLLIN|EPOLLET;
+			evnt.data.fd = new_fd;
+			LogNotice("=>Adding new fd into epoll");
+			error = epoll_ctl(epollfd, EPOLL_CTL_ADD, new_fd, &evnt);
+			set_no_blocking(new_fd);
+			if (error == -1) {
+				perror("=>EPOLL_CTL_ADD ERROR");
+				LogFatal("=>Add fd into epoll failed");
+			}
 		}
 		// start epoll wait
-		LogNotice("=>Epoll wait for data arriving...");
-		error = epoll_wait(epollfd, evnts, Max_epoll_size, -1);
+		//LogNotice("=>Epoll wait for data arriving...");
+		error = epoll_wait(epollfd, evnts, Max_epoll_size, 10);
+		if (error == 0) {
+			continue;
+		}
 		LogNotice("Event arriving...");
 		if (error == -1) {
 			perror("=>EPOLL WAIT ERROR");
@@ -194,7 +195,7 @@ void *dealing_io(void *arg) {
 						strcat(request, readbuf);
 					}
 					lfree(readbuf);
-					printf("get header from client:%s\n", readbuf);
+					printf("get header from client:%s\n", request);
 					//
 					// data is in request
 					// choose one server
