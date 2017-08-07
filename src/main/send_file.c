@@ -89,27 +89,21 @@ void clear_status_map(Map *pmap) {
 }
 
 void compound_json(bool flg, const char *file_name, const char *response_header, const char *client_sign, char *json_str) {
+	light_value *pobj = create_object();
+	add_object(pobj, create_string("header"), create_string(response_header));
+	add_object(pobj, create_string("clientsign"), create_string(client_sign));
 	if (flg) {
 		//sprintf(json_str, "{\"status\":\"yes\", \"filename\":\"%s\", \"header\":\"%s\"}", file_name, response_header);
-		light_value *pobj = create_object();
 		add_object(pobj, create_string("status"), create_string("yes"));
 		add_object(pobj, create_string("filename"), create_string(file_name));
-		add_object(pobj, create_string("header"), create_string(response_header));
-		add_object(pobj, create_string("clientsign"), create_string(client_sign));
-		char *tmp = NULL;
-		light_generate(pobj, &tmp, NULL);
-		strcpy(json_str, tmp);
-		light_free(pobj);
 	}
 	else {
 		//sprintf(json_str, "{\"status\":\"no\", \"header\":\"%s\"}", response_header);
-		light_value *pobj = create_object();
 		add_object(pobj, create_string("status"), create_string("no"));
-		add_object(pobj, create_string("header"), create_string(response_header));
-		add_object(pobj, create_string("clientsign"), create_string(client_sign));
-		char *tmp = NULL;
-		light_generate(pobj, &tmp, NULL);
-		strcpy(json_str, tmp);
-		light_free(pobj);
+		show_value(pobj);
 	}
+	char *tmp = NULL;
+	light_generate(pobj, &tmp, NULL);
+	strcpy(json_str, tmp);
+	light_free(pobj);
 }

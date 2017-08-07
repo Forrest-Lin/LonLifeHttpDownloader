@@ -1,7 +1,7 @@
 #include "semaphore.h"
 
 int create_sem(int key, int initval) {
-	int mutx = semget((key_t)key, 1, IPC_CREAT|IPC_EXCL|0644);
+	int mutx = semget((key_t)key, 1, IPC_CREAT|IPC_EXCL|0666);
 	if (mutx == -1) {
 		perror("SEMGET ERROR");
 		LogFatal("Create message mutex failed");
@@ -19,7 +19,7 @@ void sem_p(int semid) {
 	struct sembuf op;
 	op.sem_num = 0;
 	op.sem_op = -1;
-	op.sem_flg = SEM_UNDO;
+	op.sem_flg = 0;
 	if (semop(semid, &op, 1) == -1) {
 		perror("SEMOP ERROR");
 		LogFatal("Run Sem p operator failed");
@@ -30,7 +30,7 @@ void sem_v(int semid) {
 	struct sembuf op;
 	op.sem_num = 0;
 	op.sem_op = 1;
-	op.sem_flg = SEM_UNDO;
+	op.sem_flg = 0;
 	if (semop(semid, &op, 1) == -1) {
 		perror("SEMOP ERROR");
 		LogFatal("Run Sem v operator failed");
