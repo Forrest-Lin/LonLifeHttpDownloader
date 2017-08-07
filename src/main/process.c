@@ -59,7 +59,7 @@ void deal_requests(int schduler, int msgid, struct producer_consumer *pc) {
 		Map mmp = parse_request(item.mtext);
 		printf("Get from queue:%s\n", item.mtext);
 		const char *method = get_request_method(&mmp);
-		map_show(&mmp, show_node)
+		mapshow(&mmp, show_node);
 		const char *client_sign = get_client_sign(&mmp);
 		if (strcmp(method, "GET") != 0) {
 			LogWarning("=>Client give not get method");
@@ -95,7 +95,7 @@ void deal_requests(int schduler, int msgid, struct producer_consumer *pc) {
 		LogNotice("=>Compounding http response header...");
 		get_header_msg(&response_map, status_code, 
 				get_status_mean(&status_map, status_code), lenth);
-		map_show(&response_map, show_node);
+		mapshow(&response_map, show_node);
 		char *response = (char *)lalloc(sizeof(char), 254);
 		add_header(response, &response_map);
 		printf("header:%s\n", response);
