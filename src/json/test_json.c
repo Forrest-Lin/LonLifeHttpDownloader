@@ -21,6 +21,7 @@ int main()
     //char *ret;
     //size_t len;
     add_object(p,create_string("name"),create_string("hhh"));
+	show_value(p);
 	char *str = NULL;
 	int len = 0;
 	light_generate(p, &str, &len);
