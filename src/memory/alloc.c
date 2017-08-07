@@ -18,12 +18,12 @@ void *lalloc(int size, int n){
 	int alloc_size = size*n + 2;
 	if (alloc_size > Max_size) {
 		void *p = calloc(size, n);
-		(*(char *)p) = alloc_size;
+		(*(short *)p) = alloc_size;
 		return ((char *)p) + 2;
 	}
 	void *res = chunk_alloc(alloc_size);
 	//最开始的2个字节存储size大小
-	*((char *)res) = alloc_size;
+	*((short*)res) = alloc_size;
 	return ((char *)res) + 2;
 }
 
