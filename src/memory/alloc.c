@@ -26,6 +26,7 @@ void *lalloc(int size, int n){
 void lfree(void *p) {
 	p = (short *)p - 1;
 	short size= *(short *)p;
+	printf("[lfree]:[%d]\n", size);
 	if (size > Max_size) {
 		free(p);
 	}
