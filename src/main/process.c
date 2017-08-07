@@ -42,6 +42,7 @@ void deal_requests(int schduler, int msgid, struct producer_consumer *pc) {
 		// get one request from queue
 		msgbuf item;
 		lock_consume(pc);
+		printf("lock consume");
 		print_value(pc);
 		LogNotice("=>Getting request from queue...");
 		int error = msgrcv(msgid, &item, sizeof(item.mtext), 0, IPC_NOWAIT);
@@ -56,7 +57,9 @@ void deal_requests(int schduler, int msgid, struct producer_consumer *pc) {
 		// 1.parse http reequests
 		LogNotice("=>Parsing http request...");
 		Map mmp = parse_request(item.mtext);
+		printf("Get from queue:%s\n", item.mtext);
 		const char *method = get_request_method(&mmp);
+		map_show(&mmp, show_node)
 		const char *client_sign = get_client_sign(&mmp);
 		if (strcmp(method, "GET") != 0) {
 			LogWarning("=>Client give not get method");
@@ -67,6 +70,7 @@ void deal_requests(int schduler, int msgid, struct producer_consumer *pc) {
 		const char *destfile = get_dest_file(&mmp);
 		LogNotice("=>Judging whether file exsit...");
 		char *res = (char *)lalloc(sizeof(char), 60);
+		printf("filename is %s\n", destfile);
 		bool flg = judge_file_exsit(destfile, res);
 		if (!flg) {
 			LogWarning("=>File not exsit");
@@ -91,14 +95,17 @@ void deal_requests(int schduler, int msgid, struct producer_consumer *pc) {
 		LogNotice("=>Compounding http response header...");
 		get_header_msg(&response_map, status_code, 
 				get_status_mean(&status_map, status_code), lenth);
+		map_show(&response_map, show_node);
 		char *response = (char *)lalloc(sizeof(char), 254);
 		add_header(response, &response_map);
+		printf("header:%s\n", response);
 		map_clear(&response_map, clear_node);
 
 		//4.compound json message
 		char *json_res = (char *)lalloc(sizeof(char), 510);
 		LogNotice("=>Compounding json message...");
 		compound_json(flg, res, response, client_sign, json_res);
+		printf("json str:%s\n", json_res);
 		lfree(res);
 		lfree(response);
 		map_clear(&mmp, clear_node);
@@ -113,6 +120,7 @@ void deal_requests(int schduler, int msgid, struct producer_consumer *pc) {
 		if (error == -1) {
 			LogFatal("=>Sending data fialed");
 		}
+		LogNotice("Sending ok...");
 		lfree(json_res);
 		lfree(sendbuf);
 
@@ -185,16 +193,19 @@ void create_reactor(int schduler, int msgid, struct producer_consumer *pc) {
 		// finish one, so put it into msg queue
 		LogNotice("Sending data into message queue...");
 		// p
+		printf("before lock prouce");
 		print_value(pc);
 		lock_produce(pc);
+		printf("lock prouce");
 		print_value(pc);
 		int error = msgsnd(msgid, &item, sizeof(item.mtext), IPC_NOWAIT);
+		printf("Msg in queue:%s\n", item.mtext);
 		if (error == -1) {
 			perror("MSGSEND ERROR");
 			LogFatal("Send message into queue failed");
 		}
-		print_value(pc);
 		unlock_produce(pc);
+		printf("after unlock produce");
 		print_value(pc);
 		//v
 	}
