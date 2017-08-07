@@ -39,6 +39,7 @@ void *dealing_io(void *arg) {
 	while (true) {
 		int new_fd = -1;
 		pipe_read(parg->ppp, &new_fd);
+		printf("reading a fd from pipe:%d\n", new_fd);
 		if (new_fd == -1) {
 			continue;
 		}
@@ -57,6 +58,7 @@ void *dealing_io(void *arg) {
 		// start epoll wait
 		LogNotice("=>Epoll wait for data arriving...");
 		error = epoll_wait(epollfd, evnts, Max_epoll_size, -1);
+		LogNotice("Event arriving...");
 		if (error == -1) {
 			perror("=>EPOLL WAIT ERROR");
 			LogFatal("=>Epoll wait failed");
@@ -69,6 +71,7 @@ void *dealing_io(void *arg) {
 			int ready_fd = evnts[i].data.fd;
 			if (evnts[i].events & EPOLLIN) {
 				if (in_range(parg->fd_set, ready_fd)) {
+					LogNotice("Get a server read event");
 					// is server fd arriving
 					//Stick package
 					char *json_str = (char *)lalloc(sizeof(char), 510);
@@ -119,9 +122,9 @@ void *dealing_io(void *arg) {
 					}
 					lfree(buf);
 
+					printf("get data from server:%s\n", json_str);
 					// json_str is on json_str
 					LogNotice("=>Parsing json str...");
-					LogNotice(json_str);
 					light_value vp;
 					light_parse(&vp, json_str);
 					char *status_str = lalloc(sizeof(char), 4);
@@ -151,15 +154,22 @@ void *dealing_io(void *arg) {
 					lfree(fd_str);
 					lfree(json_str);
 
+					error = epoll_ctl(epollfd, EPOLL_CTL_DEL, clientfd, NULL);
+					if (error == -1) {
+						LogWarning("=>Del fd from epoll failed, please check...");
+					}
+					close(clientfd);
+
 				}
 				else {
+					LogNotice("Get a client read event...");
 					// is client request arriving
 					char *readbuf = (char *)lalloc(sizeof(char), 30);
 					char *request = (char *)lalloc(sizeof(char), 126);
 					while (true) {
 						// here is non blocking  so reading finish it
 						memset(readbuf, 0, strlen(readbuf));
-						int l = recv(ready_fd, readbuf, 30, 0);
+						int l = recv(ready_fd, readbuf, 29, 0);
 						if (l < 0) {
 							if (errno == EAGAIN || errno == EWOULDBLOCK) {
 								LogWarning("=>Finish reading and begin to deal it...");
@@ -184,6 +194,7 @@ void *dealing_io(void *arg) {
 						strcat(request, readbuf);
 					}
 					lfree(readbuf);
+					printf("get header from client:%s\n", readbuf);
 					//
 					// data is in request
 					// choose one server
@@ -200,11 +211,13 @@ void *dealing_io(void *arg) {
 					lfree(request);
 					// send to server
 					error = write(sfd, sendbuf, strlen(sendbuf));
+					LogNotice("Send header data to server ok...");
 					lfree(sendbuf);
 					if (error == -1) {
 						//todos
 						LogFatal("=>Send data to server failed, please check...");
 					}
+					LogNotice("=>Sending request to server ok...");
 				}
 			}
 			else {
