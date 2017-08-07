@@ -9,7 +9,11 @@ int Nnum = 20;
 
 void *lalloc(int size, int n){
 	// behavior is like calloc
-	assert (size > 0 && n > 0);
+	//assert (size > 0 && n > 0);
+	if (size <=0 || n <= 0) {
+		printf("[size=%d][n=%d]\n", size, n);
+		exit(-1);
+	}
 	// for contain the size
 	int alloc_size = size*n + 2;
 	if (alloc_size > Max_size) {
