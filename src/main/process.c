@@ -104,6 +104,7 @@ void deal_requests(int schduler, int msgid, struct producer_consumer *pc) {
 		//4.compound json message
 		char *json_res = (char *)lalloc(sizeof(char), 510);
 		LogNotice("=>Compounding json message...");
+
 		compound_json(flg, res, response, client_sign, json_res);
 		printf("json str:%s\n", json_res);
 		lfree(res);

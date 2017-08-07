@@ -20,6 +20,7 @@ void show_node(void *data) {
 	printf("%s:%s\n", p->key, (char *)p->value);
 }
 Map parse_request(const char *request) {
+	LogNotice(request);
 	Map res_map = map();
 	char *tmp = (char *)lalloc(sizeof(char), strlen(request)+1);
 	assert (tmp != NULL);
