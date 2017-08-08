@@ -1,6 +1,6 @@
 DIR = $(shell pwd)
 CC = gcc
-SRC = scheduler.c algorithm.c thread.c pipe.c
+SRC = scheduler.c algorithm.c thread.c pipe.c md5.c
 HEADER = $(DIR)/*.h
 OBJ := $(patsubst %.c,%.o, $(SRC))
 NAME = scheduler

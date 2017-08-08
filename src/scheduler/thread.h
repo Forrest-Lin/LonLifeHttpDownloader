@@ -5,7 +5,9 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include <string.h>
+#include "md5.h"
 #include "pipe.h"
 #include "../json/light_json.h"
 #include "../memory/alloc.h"

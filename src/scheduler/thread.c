@@ -1,5 +1,19 @@
 #include "thread.h"
 
+void get_client_md5sum(int clifd, char *md5sum) {
+	struct sockaddr_in sockaddr;
+	int len = sizeof(sockaddr);
+	int error = getpeername(clifd, (struct sockaddr *)&sockaddr, &len);
+	if (error == -1) {
+		perror("=>GETPEERNAME ERROR");
+		LogFatal("=>Get client message failed...");
+	}
+	char str[50] = "";
+	sprintf(str, "%s:%d", inet_ntoa(sockaddr.sin_addr), ntohs(sockaddr.sin_port));
+	LogNotice(str);
+	Compute_string_md5(str, strlen(str), md5sum);	
+}
+
 void set_no_blocking(int fd) {
 	int flg = fcntl(fd, F_GETFL);
 	int error = fcntl(fd, F_SETFL, flg|O_NONBLOCK);
@@ -196,10 +210,12 @@ void *dealing_io(void *arg) {
 					}
 					lfree(readbuf);
 					printf("get header from client:%s\n", request);
-					//
-					// data is in request
+					// get the client md5sum
+					char md5sum[33] = "";
+					get_client_md5sum(ready_fd, md5sum);
+					LogNotice(md5sum);
 					// choose one server
-					int sfd = get_server_fd(parg->fd_set);
+					int sfd = get_server_fd(parg->fd_set, md5sum);
 
 					LogNotice("=>Begin to pass data...");
 

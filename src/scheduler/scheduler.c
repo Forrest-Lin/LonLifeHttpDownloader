@@ -98,13 +98,15 @@ void connect_servers() {
 	int i = 0;
 	light_value *p = Value(&v, "server_lists");
 	for (; i<server_num; ++i) {
-		// get ip && port
+		// get ip && port && name
 		char *ip = (char *)lalloc(32, 1);
+		char *name = (char *)lalloc(32, 1);
 		int port = -1;
 		double tmp;
 		light_value *server = index_array(p, i);
 		get_string(Value(server, "server_ip"), ip);
 		get_number(Value(server, "server_port"), &tmp);
+		get_string(Value(server, "server_name"), name);
 		port = (int)tmp;
 		// need to save fds
 		
@@ -120,9 +122,12 @@ void connect_servers() {
 		}
 		LogNotice("Connected server ok");
 
-		add_fd(fd_set, cli);
+		// construct node and init it
+		Real_node node = {name, ip, port, cli};
+		add_fd(fd_set, &node);
 		// free mem
 		lfree(ip);
+		lfree(name);
 	}
 	LogNotice("Connected all servers ok");
 	lfree(json_str);
