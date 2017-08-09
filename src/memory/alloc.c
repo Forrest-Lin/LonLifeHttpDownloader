@@ -147,7 +147,7 @@ bool heap_refill(int index) {
 	chunk_list[index] = current;
 	//1->2 2->3 3->4 19->20 next(20)->NULL
 	int i = 0;
-    for (; i<num-1; ++i) {
+    for (; i<num-2; ++i) {
 		current->next_chunk = next;
 
 		current = next;
