@@ -7,6 +7,13 @@ int Min_size = 8;
 int Max_size = 128;
 int Nnum = 20;
 
+void init_heap() {
+	heap.start = NULL;
+	heap.end = NULL;
+	heap.total_size = 0;
+	memset(chunk_list, 0, sizeof(chunk *)*16);
+}
+
 void *lalloc(int size, int n){
 	// behavior is like calloc
 	//assert (size > 0 && n > 0);

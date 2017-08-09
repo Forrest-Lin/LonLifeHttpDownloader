@@ -36,4 +36,5 @@ int round_up(int);
 int Index(int);
 // refill mem for indx, if success return pointer, nor NULL
 bool heap_refill(int);
+void init_heap();
 #endif
