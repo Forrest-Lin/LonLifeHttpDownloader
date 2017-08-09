@@ -80,7 +80,9 @@ void add_fd(FdSet *fd_set, Real_node *pnode) {
 	char md5key[33] = "";
 	char dest[50] = "";
 	sprintf(dest, "%s:%d", pnode->ip, pnode->port);
+	LogNotice(dest);
 	Compute_string_md5(dest, strlen(dest), md5key);
+	LogNotice(md5key);
 	Item *node_item = new_real_item(md5key, pnode);
 	add_item(fd_set->real_message, node_item);
 
@@ -91,7 +93,9 @@ void add_fd(FdSet *fd_set, Real_node *pnode) {
 		// add virtual node
 		char new_key[33] = "";
 		Compute_string_md5(dest, strlen(dest), new_key);
-		Item *rv_node = new_ra_item(md5key, new_key);
+		LogNotice(dest);
+		LogNotice(new_key);
+		Item *rv_node = new_ra_item(new_key, md5key);
 		add_item(fd_set->rv_map, rv_node);
 	}
 }
@@ -105,33 +109,45 @@ int fd_num(FdSet *fd_set) {
 }
 
 int get_server_fd(FdSet *fd_set, const char *key) {
+	//return hash_get(fd_set, key);
 	return random_get(fd_set);
+}
+
+// tree First sequence traversal
+char *get_nearly_server(Node *p, Node *tail, const char *key) {
+	char *res_key = NULL;
+	if (p != tail) {
+		if (p->left != tail) {
+			char *res_key = get_nearly_server(p->left, tail, key);
+			if (NULL != res_key) return res_key;
+		}
+		Item *pitem = (Item *)(p->data);
+		if (strcmp(pitem->key, key) > 0) return (char *)(pitem->value);
+
+		if (p->right != tail) {
+			res_key = get_nearly_server(p->right, tail, key);
+			if (NULL != res_key) return res_key;
+		}
+	}
+	return NULL;
 }
 
 int hash_get(FdSet *fd_set, const char *key) {
 	// find first  higher than given key
 	Node *p = fd_set->rv_map->tree->root;
 	Node *tail = fd_set->rv_map->tree->tail;
-	char *realnode_key = NULL;
-	while (p != tail) {
-		int res = strcmp(((Item *)(p->data))->key, key);
-		if (res > 0) {
-			char *realnode_key = (char *)(((Item *)(p->data))->value); 
-			break;
-		}
-		else if (res < 0) {
-			p = p->right;
-		}
-		else {
-			LogFatal("Unbelieve happen, get same md5sum");
-		}
-	}
-	//
+	LogNotice("Hash get");
+	LogNotice(key);
+
+	char *realnode_key = get_nearly_server(p, tail, key);
 	//return the root node msg : ring
 	if (NULL == realnode_key) {
 		realnode_key = (char *)(((Item *)(fd_set->rv_map->tree->root->data))->value);
 	}
 	Real_node *real_node = (Real_node *)value(fd_set->real_message, realnode_key);
+	LogNotice("Srver message...");
+	LogNotice(real_node->ip);
+	LogNotice(realnode_key);
 	return real_node->fd;
 }
 
@@ -150,5 +166,6 @@ int random_get(FdSet *fd_set) {
 	srand((unsigned)time(NULL));
 	int indx = rand()%fd_set->fd_nums;
 	++(fd_set->task_nums[indx]);
+	indx = 2;
 	return fd_set->fd_array[indx];
 }
