@@ -242,6 +242,7 @@ void multiprocess_start(char *ip, int port) {
 		if (process_fds[i-1] == 0) {
 			// child 
 			LogNotice("=>Started one processed...");
+			init_heap();
 			deal_requests(schduler, msgid, &mutx);
 			break;
 		}
