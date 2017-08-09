@@ -109,8 +109,8 @@ int fd_num(FdSet *fd_set) {
 }
 
 int get_server_fd(FdSet *fd_set, const char *key) {
-	//return hash_get(fd_set, key);
-	return random_get(fd_set);
+	return hash_get(fd_set, key);
+	//return random_get(fd_set);
 }
 
 // tree First sequence traversal
