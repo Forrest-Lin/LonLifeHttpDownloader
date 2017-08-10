@@ -59,6 +59,7 @@ void *dealing_io(void *arg) {
 			struct epoll_event evnt;
 			evnt.events = EPOLLIN|EPOLLET;
 			evnt.data.fd = new_fd;
+			printf("======new_fd:%d\n", new_fd);
 			LogNotice("=>Adding new fd into epoll");
 			error = epoll_ctl(epollfd, EPOLL_CTL_ADD, new_fd, &evnt);
 			set_no_blocking(new_fd);
@@ -97,10 +98,17 @@ void *dealing_io(void *arg) {
 						LogFatal("=>Server closed, please check...");
 					}
 					else if (l < 0) {
-						perror("=>READ ERROR");
-						LogFatal("=>Read json data from server failed");
+						if (errno == EAGAIN || errno == EWOULDBLOCK) {
+							LogNotice("=>Not get message from server, try again");
+							continue;
+						}
+						else {
+							perror("=>READ ERROR");
+							LogFatal("=>Read json data from server failed");
+						}
 					}
 					char *p = strstr(buf, "##");
+					LogNotice(buf);
 					if(p == NULL) {
 						LogWarning("=>Not get gap value \"##\" so skip this json package");
 						continue;
@@ -171,7 +179,12 @@ void *dealing_io(void *arg) {
 
 					error = epoll_ctl(epollfd, EPOLL_CTL_DEL, clientfd, NULL);
 					if (error == -1) {
+						printf("client:%d\n", clientfd);
+						perror("=>EPOLL_DEL");
 						LogWarning("=>Del fd from epoll failed, please check...");
+					}
+					else {
+						LogNotice("Del fd from epoll success...");
 					}
 					close(clientfd);
 
@@ -181,11 +194,12 @@ void *dealing_io(void *arg) {
 					// is client request arriving
 					char *readbuf = (char *)lalloc(sizeof(char), 30);
 					char *request = (char *)lalloc(sizeof(char), 126);
+					int live = -1;
 					while (true) {
 						// here is non blocking  so reading finish it
 						memset(readbuf, 0, strlen(readbuf));
-						int l = recv(ready_fd, readbuf, 29, 0);
-						if (l < 0) {
+						live = recv(ready_fd, readbuf, 29, 0);
+						if (live < 0) {
 							if (errno == EAGAIN || errno == EWOULDBLOCK) {
 								LogWarning("=>Finish reading and begin to deal it...");
 								break;
@@ -195,18 +209,27 @@ void *dealing_io(void *arg) {
 								LogFatal("=>Read data from client failed");
 							}
 						}	
-						else if(l == 0) {
-							LogWarning("=>One clinet is exit but not get full message");
+						else if(live == 0) {
+							LogWarning("=>One client is exit but not get full message");
 							// remove from epoll
-							error = epoll_ctl(epollfd, EPOLL_CTL_DEL, ready_fd, NULL);
-							if (error == -1) {
-								LogWarning("=>Del fd from epoll failed, please check...");
-							}
-							close(ready_fd);
+							//error = epoll_ctl(epollfd, EPOLL_CTL_DEL, ready_fd, NULL);
+							//if (error == -1) {
+							//	LogWarning("=>Del fd from epoll failed, please check...");
+							//}
+							//close(ready_fd);
 							break;
 						}
-						// still have data to read
-						strcat(request, readbuf);
+						else {
+							// still have data to read
+							strcat(request, readbuf);
+						}
+					}
+
+					if (live == 0) {
+						// client closed so free mem and continue
+						lfree(readbuf);
+						lfree(request);
+						continue;
 					}
 					lfree(readbuf);
 					printf("get header from client:%s\n", request);
@@ -235,6 +258,7 @@ void *dealing_io(void *arg) {
 						LogFatal("=>Send data to server failed, please check...");
 					}
 					LogNotice("=>Sending request to server ok...");
+					printf("client:%d\n", ready_fd);
 				}
 			}
 			else {

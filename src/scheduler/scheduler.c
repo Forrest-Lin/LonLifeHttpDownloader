@@ -176,5 +176,6 @@ void send_file(int fd, const char *filename) {
 	while (read(filefd, buf, 31) != 0) {
 		write(fd, buf, strlen(buf));
 	}
+	close(filefd);
 	lfree(buf);
 }
