@@ -117,7 +117,7 @@ void deal_requests(int schduler, int msgid, struct producer_consumer *pc) {
 		char *sendbuf = (char *)lalloc(sizeof(char), buflen);
 		sprintf(sendbuf, "%d##%s", strlen(json_res), json_res);
 		LogNotice("=>Sending data to scheduler...");
-		error = write(schduler, sendbuf, buflen);
+		error = write(schduler, sendbuf, strlen(sendbuf));
 		if (error == -1) {
 			LogFatal("=>Sending data fialed");
 		}
