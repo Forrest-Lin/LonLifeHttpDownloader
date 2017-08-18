@@ -36,13 +36,14 @@
 
 ```shell
 1. clone代码到相应的服务器或者调度器
-2. 执行 sh install.sh && sh run.sh
+2. 修改etc/server.json 和 etc/scheduler.json文件配置相关信息
+3. 执行 sh install.sh && sh run.sh
 ```
 
 ## 性能测试
 4个并发数1000个连接循环
 
-!(performance)[./picture/performance.png]
+![performance](./picture/performance.png)
 
 ## 主要设计
 
