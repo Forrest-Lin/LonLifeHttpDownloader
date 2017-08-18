@@ -1,5 +1,5 @@
 DIR = $(shell pwd)
-CC = clang 
+CC = gcc
 SRC = log.c
 HEADER = $(DIR)/*.h
 OBJ := $(patsubst %.c,%.o, $(SRC))
