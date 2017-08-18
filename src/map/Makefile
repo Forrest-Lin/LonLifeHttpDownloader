@@ -17,7 +17,7 @@ $(OBJ): $(SRC)
 $(LIB_OBJ): $(OBJ) $(HEADER)
 	ar rcs $(LIB_OBJ) $(OBJ)
 
-$(TEST): $(TESTC)
+$(TEST): $(TESTC) 
 	$(CC) -o $(TEST) $(TESTC) -L. -l$(NAME) $(DEPARG)
 
 clean:

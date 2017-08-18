@@ -1,10 +1,16 @@
-all: version
+SRC = server.c process.c parse_http.c send_file.c semaphore.c
+CC = gcc
+OBJ := $(patsubst %.c,%.o, $(SRC))
+DEPLIBS = ../map/libmap.a ../memory/liballoc.a ../log/liblog.a ../json/libjson.a
+DEPARG = -L../map -lmap -L../memory -lalloc -L../log -llog -L../json -ljson -lefence
 
-version: server.c process.c parse_http.c send_file.c semaphore.c
-	gcc -o version server.c parse_http.c send_file.c process.c semaphore.c -g -L../map -lmap -L../memory -lalloc -L../log -llog -L../json -ljson -lefence
+all: server
 
-run: version
-	./version
+$(OBJ): $(SRC)
+	gcc -c $(SRC)
 
-clean:
-	rm -rf version
+server: $(OBJ) $(DEPLIBS)
+	gcc -o server $(OBJ) $(DEPARG)
+
+clean: 
+	rm -rf $(OBJ)
