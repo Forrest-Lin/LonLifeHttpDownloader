@@ -1,4 +1,4 @@
-compile_array=('memory' 'json' 'map' 'log' 'main' 'scheduler')
+compile_array=('memory' 'map' 'json' 'log' 'main' 'scheduler')
 
 for moudle in ${compile_array[*]}
 do
